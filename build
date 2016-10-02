@@ -1,0 +1,5 @@
+#!/bin/bash
+
+mkdir -p bin
+jison src/grammar.jison -o bin/parser.js
+cat src/arrows.js > bin/arrows.js
