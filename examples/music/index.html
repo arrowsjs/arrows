@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Music Player</title>
+    </head>
+
+    <body>
+        <div id="song-container"></div>
+
+        <div id="music-controls">
+            <div id="music-title">Song Title</div>
+            <div id="music-time">Song Time</div>
+
+            <a href="javascript:void(0);" id="music-prev">Prev</a>
+            <a href="javascript:void(0);" id="music-play">Play</a>
+            <a href="javascript:void(0);" id="music-pause">Pause</a>
+            <a href="javascript:void(0);" id="music-next">Next</a>
+        </div>
+
+        <script type="text/javascript">
+            const baseUrl = 'http://www.recklessanddarlene.com/music/';
+            const typeExt = [
+                'ogg',
+                'mp3'
+            ];
+
+            const songNames = [
+                'Elizabeth',
+                'Darkside',
+                'Tell The World',
+                'Sweet Penny',
+                'O, Brother',
+                'Come On Down'
+            ];
+        </script>
+
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+        <script type="text/javascript" src="../../bin/parser.js"></script>
+        <script type="text/javascript" src="../../bin/arrows.js"></script>
+        <script type="text/javascript" src="js/common.js"></script>
+        <script type="text/javascript" src="js/arrows.js"></script>
+    </body>
+</html>
