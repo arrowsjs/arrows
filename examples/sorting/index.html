@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Sorting</title>
+
+        <style type="text/css">
+            #sort-div {
+                margin-top: 20px;
+                position: relative;
+            }
+
+            #sort-div div {
+                width: 0;
+                top: 0;
+                left: 0;
+                height: 5px;
+                background: blue;
+                font-size: 8px;
+                position: absolute;
+            }
+
+            #sort-div div.looking {
+                background-color: green;
+            }
+
+            #sort-div div.swapping {
+                background-color: red;
+            }
+        </style>
+    </head>
+
+    <body>
+        <button id="shuffle">Shuffle</button>
+        <button id="sort">Sort</button>
+        <div id="sort-div"></div>
+
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+        <script type="text/javascript" src="../../bin/parser.js"></script>
+        <script type="text/javascript" src="../../bin/arrows.js"></script>
+        <script type="text/javascript" src="js/arrows.js"></script>
+    </body>
+</html>
