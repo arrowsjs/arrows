@@ -50,11 +50,11 @@ class Arrow {
     }
 
     call(x, p, k, h) {
-        throw 'Call undefined.'
+        throw new Error('Call undefined')
     }
 
     equals(that) {
-        throw 'Equals undefined.'
+        throw new Error('Equals undefined')
     }
 
     toString() {
@@ -146,12 +146,8 @@ class Arrow {
       return a;
     }
 
-    //
-    // TODO - I hate this so much.
-    //
-
-    on(name) {
-        return new SplitArrow(2).seq(Arrow.id().all(new EventArrow(name)), this);
+    on(name, handler) {
+        return this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler);
     }
 
     remember() {
@@ -189,7 +185,7 @@ Arrow.fanout = arrows    => new SplitArrow(arrows.length).seq(Arrow.all(arrows))
 
 // Convenience
 Arrow.repeat = a          => a.repeat();
-Arrow.on     = (event, a) => a.on(event);
+Arrow.bind   = (event, a) => Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]);
 Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
 
 // Built-ins
@@ -285,7 +281,7 @@ var annotationCache = {};
 class LiftedArrow extends Arrow {
     constructor(f) {
         if (!(f instanceof Function)) {
-            throw 'Cannot lift non-function.';
+            throw new Error('Cannot lift non-function');
         }
 
         super(construct(() => {
@@ -299,16 +295,21 @@ class LiftedArrow extends Arrow {
             if (annotationCache[c] !== undefined) {
                 var parsed = annotationCache[c];
             } else {
+                var comment;
                 try {
-                    var comment = c.match(/\@arrow :: (.*)\n?/)[1]
+                  comment = c.match(/\@arrow :: (.*)\n?/)[1]
                 } catch (err) {
-                    var comment = '_ ~> _';
+                  if (typecheck) {
+                    console.warn('Function being lifted does not contain an @arrow annotation');
+                  }
+
+                  comment = '_ ~> _';
                 }
 
                 try {
-                    var parsed = parser.parse(comment);
+                  parsed = parser.parse(comment);
                 } catch (err) {
-                  throw `Function being lifted does not contain a parseable @arrow annotation.\n${err.message}\n`
+                  throw new ComposeError(`Function being lifted does not contain a parseable @arrow annotation.\n${err.message}\n`);
                 }
 
                 annotationCache[c] = parsed;
@@ -399,7 +400,7 @@ class AjaxArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
                 } catch (err) {
-                  throw `Ajax config function does not contain a parseable @conf annotation.\n${err.message}\n`
+                  throw new ComposeError(`Ajax config function does not contain a parseable @conf annotation.\n${err.message}\n`)
                 }
 
                 try {
@@ -408,7 +409,7 @@ class AjaxArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
                 } catch (err) {
-                  throw `Ajax config function does not contain a parseable @resp annotation.\n${err.message}\n`
+                  throw new ComposeError(`Ajax config function does not contain a parseable @resp annotation.\n${err.message}\n`)
                 }
 
                 annotationCache[c] = [conf, resp];
@@ -619,8 +620,9 @@ class NoEmitCombinator extends Combinator {
 class SeqCombinator extends Combinator {
     constructor(arrows) {
         super(construct(() => {
-            try{
-                var sty = sanitizeTypes(arrows);
+            var sty = sanitizeTypes(arrows);
+
+            try {
                 var len = sty.length - 1;
 
                 var arg = sty[0].arg;
@@ -639,7 +641,16 @@ class SeqCombinator extends Combinator {
 
                return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-                throw 'Cannot seq arrow: ' + err;
+              var message;
+              let location = getLocation(err.stack);
+
+              if (location) {
+                message = 'Unable to seq arrows at: ' + location;
+              } else {
+                message = 'Unable to seq arrows'
+              }
+
+              throw new ComposeError(message + '\n\tInput => Seq(' + sty.join(', ') + ')\n\tError => ' + err);
             }
        }), arrows);
     }
@@ -660,9 +671,9 @@ class SeqCombinator extends Combinator {
 class AllCombinator extends Combinator {
     constructor(arrows) {
         super(construct(() => {
-            try {
-                var sty = sanitizeTypes(arrows);
+            var sty = sanitizeTypes(arrows);
 
+            try {
                 var arg = [];
                 var out = [];
                 var ncs = new ConstraintSet([]);
@@ -678,7 +689,16 @@ class AllCombinator extends Combinator {
 
                 return new ArrowType(new TupleType(arg), new TupleType(out), ncs, err);
             } catch (err) {
-                throw 'Cannot all arrow: ' + err;
+              var message;
+              let location = getLocation(err.stack);
+
+              if (location) {
+                message = 'Unable to all arrows at: ' + location;
+              } else {
+                message = 'Unable to all arrows'
+              }
+
+              throw new ComposeError(message + '\n\tInput => All(' + sty.join(', ') + ')\n\tError => ' + err);
             }
        }), arrows);
     }
@@ -703,9 +723,9 @@ class AllCombinator extends Combinator {
 class AnyCombinator extends Combinator {
     constructor(arrows) {
         super(construct(() => {
-            try {
-                var sty = sanitizeTypes(arrows);
+            var sty = sanitizeTypes(arrows);
 
+            try {
                 var arg = ParamType.fresh();
                 var out = ParamType.fresh();
                 var ncs = new ConstraintSet([]);
@@ -721,7 +741,16 @@ class AnyCombinator extends Combinator {
 
                 return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-                throw 'Cannot any arrow: ' + err;
+              var message;
+              let location = getLocation(err.stack);
+
+              if (location) {
+                message = 'Unable to any arrows at: ' + location;
+              } else {
+                message = 'Unable to any arrows'
+              }
+
+              throw new ComposeError(message + '\n\tInput => Any(' + sty.join(', ') + ')\n\tError => ' + err);
             }
        }), arrows);
     }
@@ -731,7 +760,7 @@ class AnyCombinator extends Combinator {
         // time because a recursive arrow may present itself as falsely async.
 
         if (!this.arrows.every(a => a.isAsync())) {
-            throw 'Any combinator requires asynchronous arrow arguments.';
+            throw new Error('Any combinator requires asynchronous arrow arguments');
         }
 
         let progress = this.arrows.map(() => new Progress(true));
@@ -765,11 +794,11 @@ class AnyCombinator extends Combinator {
 class TryCombinator extends Combinator {
     constructor(a, s, f) {
         super(construct(() => {
-            try {
-                var sta = sanitizeTypes([a])[0];
-                var sts = sanitizeTypes([s])[0];
-                var stf = sanitizeTypes([f])[0];
+            var sta = sanitizeTypes([a])[0];
+            var sts = sanitizeTypes([s])[0];
+            var stf = sanitizeTypes([f])[0];
 
+            try {
                 var arg = sta.arg;
                 var out = ParamType.fresh();
                 var ncs = new ConstraintSet([]);
@@ -791,7 +820,16 @@ class TryCombinator extends Combinator {
 
                 return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-                throw 'Cannot try arrow: ' + err;
+              var message;
+              let location = getLocation(err.stack);
+
+              if (location) {
+                message = 'Unable to try arrows at: ' + location;
+              } else {
+                message = 'Unable to try arrows'
+              }
+
+              throw new ComposeError(message + '\n\tInput => Try(' + [sta, sts, stf].join(', ') + ')\n\tError => ' + err);
             }
         }), [a, s, f]);
     }
@@ -824,6 +862,12 @@ Arrow.fix = function(ctor) {
     var a = ctor(p);
     p.freeze(a);
 
+    if (!(a instanceof Arrow)) {
+      throw new Error('Fix constructor must return an arrow')
+    }
+
+    var t = a.type.toString();
+
     var map = {};
     descendants(arg).forEach(d => map[d.id] = arg);
     descendants(out).forEach(d => map[d.id] = out);
@@ -840,7 +884,16 @@ Arrow.fix = function(ctor) {
     try {
         a.type.resolve();
     } catch (err) {
-        throw 'Cannot fix arrow: ' + err;
+        var message;
+        let location = getLocation(err.stack);
+
+        if (location) {
+          message = 'Unable to fix arrow at: ' + location;
+        } else {
+          message = 'Unable to fix arrow'
+        }
+
+        throw new ComposeError(message + '\n\tInput => Fix(' + t + ')\n\tError => ' + err);
     }
 
     return a;
@@ -887,12 +940,12 @@ class ProxyArrow extends Arrow {
             return f(this.arrow);
         }
 
-        throw 'Proxy not frozen.'
+        throw new Error('Proxy not frozen')
     }
 }
 
 //
-// Value Type
+// Errors
 //
 
 class TypeClash extends Error {
@@ -908,9 +961,33 @@ class TypeClash extends Error {
     }
 }
 
+class ComposeError extends Error {
+  constructor(s) {
+    super(s);
+  }
+}
+
+function getLocation(stack) {
+  let r = new RegExp(/(?:https?|file):\/\/(.+):(\d+):\d+/g);
+
+  for (let match of stack.match(r)) {
+    let parts = new RegExp(/(?:https?|file):\/\/(.+):(\d+):\d+/g).exec(match);
+
+    if (!parts[1].endsWith('arrows.js')) {
+      return parts[1] + ':' + parts[2];
+    }
+  }
+
+  return '';
+}
+
+//
+// Value Type
+//
+
 class Type {
     equals(that) {
-        throw 'Equals undefined.'
+        throw new Error('Equals undefined')
     }
 
     check(value) {
@@ -1017,7 +1094,7 @@ function checkNamedType(name, value) {
     if (checker) {
         return checker(value);
     } else {
-        throw `Named type '${name}' does not have an associated checker.`;
+        throw new Error(`Named type '${name}' does not have an associated checker.`);
     }
 }
 
@@ -1355,8 +1432,32 @@ class ConstraintSet {
         var inconsistent = constraints.filter(c => !c.isConsistent());
 
         if (inconsistent.length != 0) {
-            throw 'Inconsistent constraints: [' + inconsistent.map(c => c.toString()).join(', ') + '].';
+            throw new Error('Inconsistent constraints: [' + inconsistent.map(c => c.toString()).join(', ') + ']');
         }
+    }
+
+    equals(that) {
+      if (this.constraints.length == that.constraints.length) {
+        for (var i = 0; i < this.constraints.length; i++) {
+          if (!this.contains(this.constraints[i])) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    contains(constraint) {
+      for (var i = 0; i < this.constraints.length; i++) {
+        if (this.constraints[i].equals(constraint)) {
+          return true;
+        }
+      }
+
+      return false;
     }
 
     toString() {
@@ -1423,6 +1524,8 @@ class ArrowType {
     }
 
     resolve() {
+        var initial = this.constraints;
+
         while (true) {
             this.constraints = this.closure();
             this.constraints = this.mergeConcreteBounds();
@@ -1438,8 +1541,8 @@ class ArrowType {
 
         var cs = this.prune();
 
-        if (cs.constraints.length === this.constraints.constraints.length) {
-            return;
+        if (cs.constraints.length === this.constraints.constraints.length || initial.equals(cs)) {
+          return;
         }
 
         this.constraints = cs;
@@ -1728,5 +1831,5 @@ function glb(a, b) {
         return new RecordType(map);
     }
 
-    throw `No greatest lower bound of '${a.toString()}' and '${b.toString()}'.`;
+    throw new Error(`No greatest lower bound of '${a.toString()}' and '${b.toString()}'.`);
 }
