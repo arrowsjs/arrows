@@ -1,3 +1,4 @@
+
 //
 // Caching
 
@@ -24,7 +25,7 @@ const ajax = new AjaxArrow((query, page) => {
     /* @conf :: (String, Number)
      * @resp :: {query: String, prev: Number, next: Number, results: [{id: Number, name: String, category: String, sub_category: String, container_type: String, price_per_unit: Number, margin: Number}]} */
     return {
-        'url'     : 'http://arrows.eric-fritz.com:8080?q=' + query + '&page=' + page,
+        'url'     : 'http://localhost:8080?q=' + query + '&page=' + page,
         'dataType': 'json'
     };
 });
@@ -129,10 +130,8 @@ const paging = Arrow.fix(a => Arrow.seq([
     a,
 ]));
 
-const filtering = Arrow.fix(a =>
-    new ElemArrow('#filter').seq(
-        Arrow.fanout([getVal, initPage]).seq(paging.noemit().any(a)).on('keyup')
-    )
-);
+const filtering = Arrow.fix(a => new ElemArrow('#filter').on('keyup',
+    Arrow.fanout([getVal, initPage]).seq(paging.after(400).noemit().any(a))
+));
 
 filtering.run();

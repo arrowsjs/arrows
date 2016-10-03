@@ -106,12 +106,11 @@ function animate(init, main) {
 }
 
 function startWhenPressed(elem, arrow) {
-    return new ElemArrow(elem).seq(
-        setEnabled(false)
-        .seq(arrow)
-        .seq(setEnabled(true))
-        .on('click')
-    ).forever();
+    return new ElemArrow(elem).on('click', Arrow.seq([
+        setEnabled(false),
+        arrow,
+        setEnabled(true)
+    ])).forever();
 }
 
 var doSort = animate(initSort.lift(), sort.lift());

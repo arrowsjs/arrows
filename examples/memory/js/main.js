@@ -109,9 +109,7 @@ function setEnabled(enabled) {
 // Composition
 //
 
-var selectOne = select.lift()
-    .on('click')
-    .whileTrue();
+var selectOne = Arrow.bind('click', select.lift()).whileTrue();
 
 var round = Arrow.id()
     .tap(clear)
@@ -134,15 +132,11 @@ var play = initialize.lift()
     .seq(won.lift());
 
 function startWhenPressed(elem, arrow) {
-    return new ElemArrow(elem)
-        .seq(
-            Arrow.id()
-                .tap(new NthArrow(1).seq(setEnabled(false)))
-                .tap(arrow)
-                .tap(new NthArrow(1).seq(setEnabled(true)))
-                .on('click')
-        )
-        .forever();
+    return new ElemArrow(elem).on('click', Arrow.id()
+        .tap(new NthArrow(1).seq(setEnabled(false)))
+        .tap(arrow)
+        .tap(new NthArrow(1).seq(setEnabled(true)))
+    ).forever();
 }
 
 // Main
