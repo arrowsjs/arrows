@@ -1,10 +1,7 @@
 function selectOne(cards, onComplete) {
-    // NOTE: $.one does not work as we're
-    // dealing with a set of elements, so
-    // one event _per element_ can occur
-    // when using this method. We have to
-    // implement this by hand with explicit
-    // cancellation.
+    // NOTE: $.one does not work as we're dealing with a set of elements,
+    // so one event _per element_ can occur when using this method. We
+    // have to implement this by hand with explicit cancellation.
 
     const handler = ev => {
         cancel();
