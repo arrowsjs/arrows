@@ -81,7 +81,8 @@ const blockUntilLoaded = Arrow.any([
 
 const showProgress = update.remember()
     .wait(250)
-    .seq(isPlaying).whileTrue();
+    .seq(isPlaying)
+    .whileTrue();
 
 const loadAndPlaySong = init.remember()
     .seq(getSong).tap(load, blockUntilLoaded, play)
