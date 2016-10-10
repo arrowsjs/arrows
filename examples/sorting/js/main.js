@@ -1,59 +1,11 @@
-const NUM_ITEMS = 15;
-const ANIMATION = 75;
-const ANIMATION_PARTIAL = 3 * ANIMATION / 4;
-
-for (var i = 0; i < NUM_ITEMS; i++) {
-    $('#sort-div').append($('<div />').css({
-        'top': i * 8 + 'px',
-        'width': (i + 1) * 2 + 'ex'
-    }));
-}
-
-//
-// Utility Functions
-//
-
-function swap() {
-    var swapping = $('.swapping');
-
-    if (swapping.length == 2) {
-        var c1 = swapping.eq(0).clone();
-        var c2 = swapping.eq(1).clone();
-        swapping.eq(0).replaceWith(c2);
-        swapping.eq(1).replaceWith(c1);
-
-        c1.animate({ top: c2.css('top') }, ANIMATION_PARTIAL);
-        c2.animate({ top: c1.css('top') }, ANIMATION_PARTIAL);
-    }
-}
-
-const indent = () => $('.swapping').animate({ 'margin-left': 20 }, ANIMATION_PARTIAL);
-const dedent = () => $('.swapping').animate({ 'margin-left':  0 }, ANIMATION_PARTIAL);
-
-function clear() {
-    $('#sort-div').children().removeClass('looking');
-    $('#sort-div').children().removeClass('swapping');
-}
-
-function setEnabled(flag) {
-    return new LiftedArrow(() => {
-        $('#sort').prop('disabled', !flag);
-        $('#shuffle').prop('disabled', !flag);
-    });
-}
-
-//
-// Annotated (Lifted) Functions
-//
-
 function initShuffle() {
     /* @arrow :: _ ~> Number */
     return NUM_ITEMS - 1;
 }
 
 function initSort() {
-    /* @arrow :: _ ~> (Bool, Number, Number) */
-    return [false, NUM_ITEMS, 0];
+    /* @arrow :: _ ~> (Number, Bool, Number) */
+    return [NUM_ITEMS, false, 0];
 }
 
 function shuffle(i) {
@@ -66,14 +18,14 @@ function shuffle(i) {
     return i > 1 ? Arrow.loop(i - 1) : Arrow.halt();
 }
 
-function sort(s, i, p) {
-    /* @arrow :: (Bool, Number, Number) ~> <loop: (Bool, Number, Number), halt: _> */
+function sort(i, hasInversion, numSorted) {
+    /* @arrow :: (Number, Bool, Number) ~> <loop: (Number, Bool, Number), halt: _> */
     var n1 = $('#sort-div').children().eq(NUM_ITEMS - i);
     var n2 = $('#sort-div').children().eq(NUM_ITEMS - i + 1);
-    var sw = false;
+    var inverted = false;
 
     if (parseInt(n1.css('width')) > parseInt(n2.css('width'))) {
-        sw = true;
+        inverted = true;
         n1.addClass('swapping');
         n2.addClass('swapping');
     } else {
@@ -81,16 +33,12 @@ function sort(s, i, p) {
         n2.addClass('looking')
     }
 
-    if (i - 1 > p + 1) {
-        return Arrow.loop([s || sw, i - 1, p]);
+    if (i - 1 > numSorted + 1) {
+        return Arrow.loop([i - 1, hasInversion || inverted, numSorted]);
     } else {
-        return s || sw ? Arrow.loop([false, NUM_ITEMS, p + 1]) : Arrow.halt();
+        return hasInversion || inverted ? Arrow.loop([NUM_ITEMS, false, numSorted + 1]) : Arrow.halt();
     }
 }
-
-//
-// Composition
-//
 
 function animate(init, main) {
     return init.seq(
@@ -115,8 +63,6 @@ function startWhenPressed(elem, arrow) {
 
 var doSort = animate(initSort.lift(), sort.lift());
 var doShuffle = animate(initShuffle.lift(), shuffle.lift());
-
-// Main
 
 startWhenPressed('#sort', doSort).run();
 startWhenPressed('#shuffle', doShuffle).run();

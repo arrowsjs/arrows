@@ -43,12 +43,12 @@ function game(cards, onComplete) {
 $('#play').click(() => {
     let cards = setup();
 
-    $(this).prop('disabled', true);
+    $('#play').prop('disabled', true);
 
     setTimeout(() => {
         game(cards, () => {
             won();
-            $(this).prop('disabled', false);
+            $('#play').prop('disabled', false);
         });
     }, 1000);
 });
