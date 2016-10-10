@@ -1,4 +1,3 @@
-
 //
 // Caching
 
@@ -37,7 +36,7 @@ const ajaxOrCached = lookup.catch(
 //
 // Ajax Result Handling
 
-const handle = new LiftedArrow(results =>{
+const handle = new LiftedArrow(results => {
     /* @arrow :: [{id: Number, name: String, category: String, sub_category: String, container_type: String, price_per_unit: Number, margin: Number}] ~> _ */
     $('#results tbody').empty();
 
@@ -118,7 +117,7 @@ const paging = Arrow.fix(a => Arrow.seq([
         Arrow.seq([new NthArrow(2), ajaxOrCached]),
 
         // Block until button click. Pass next or prev pagination cursor back into
-        // the arrow. The content shoudl change almost immediately because we've
+        // the arrow. The content should change almost immediately because we've
         // put the next set of results into the cache before this point.
         Arrow.any([
             new NthArrow(1).triggeredBy('#prev', 'click'),
