@@ -36,8 +36,6 @@ function showPage(query, page) {
         let prev = results.prev;
         let next = results.next;
 
-        console.log(results);
-
         displayPage(results.results, results.rangeLeft, results.rangeRight, results.count);
 
         // NOTE: This is not equivalent to the arrows version. This
