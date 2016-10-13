@@ -3,3 +3,8 @@
 mkdir -p bin
 jison src/grammar.jison -o bin/parser.js
 cat src/arrows.js > bin/arrows.js
+cat src/builtins.js >> bin/arrows.js
+cat src/combinators.js >> bin/arrows.js
+cat src/types.js >> bin/arrows.js
+cat src/typechecker.js >> bin/arrows.js
+cat src/util.js >> bin/arrows.js
