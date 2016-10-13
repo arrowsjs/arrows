@@ -22,7 +22,7 @@ const store = new LiftedArrow((key, value) => {
 
 const ajax = new AjaxArrow((query, page) => {
     /* @conf :: (String, Number)
-     * @resp :: {query: String, prev: Number, next: Number, results: [{id: Number, name: String, category: String, sub_category: String, container_type: String, price_per_unit: Number, margin: Number}]} */
+     * @resp :: {query: String, prev: Number, next: Number, results: [{id: Number, name: String, category: String, sub_category: String, price_per_unit: Number, margin: Number}], rangeLeft: Number, rangeRight: Number, count: Number} */
     return {
         'url'     : 'http://localhost:8080?q=' + query + '&page=' + page,
         'dataType': 'json'
@@ -36,13 +36,15 @@ const ajaxOrCached = lookup.catch(
 //
 // Ajax Result Handling
 
-const handle = new LiftedArrow(results => {
-    /* @arrow :: [{id: Number, name: String, category: String, sub_category: String, container_type: String, price_per_unit: Number, margin: Number}] ~> _ */
+const handle = new LiftedArrow((results, rangeLeft, rangeRight, count) => {
+    /* @arrow :: ([{id: Number, name: String, category: String, sub_category: String, price_per_unit: Number, margin: Number}], Number, Number, Number) ~> _ */
     $('#results tbody').empty();
+
+    $('#meta').text('Displaying ' + rangeLeft + '-' + rangeRight + ' of ' + count);
 
     for (let row of results) {
         let tr = $('<tr />');
-        for (let field of ['id', 'name', 'category', 'sub_category', 'container_type', 'price_per_unit', 'margin']) {
+        for (let field of ['id', 'name', 'category', 'sub_category', 'price_per_unit', 'margin']) {
             tr.append($('<td />').text(row[field]));
         }
 
@@ -79,8 +81,8 @@ const extractNext = new LiftedArrow(x =>
 );
 
 const extractResults = new LiftedArrow(x =>
-    /* @arrow :: {results: [{id: Number, name: String, category: String, sub_category: String, container_type: String, price_per_unit: Number, margin: Number}]} ~> [{id: Number, name: String, category: String, sub_category: String, container_type: String, price_per_unit: Number, margin: Number}] */
-    x.results
+    /* @arrow :: {results: [{id: Number, name: String, category: String, sub_category: String, price_per_unit: Number, margin: Number}], rangeLeft: Number, rangeRight: Number, count: Number} ~> ([{id: Number, name: String, category: String, sub_category: String, price_per_unit: Number, margin: Number}], Number, Number, Number) */
+    [x.results, x.rangeLeft, x.rangeRight, x.count]
 );
 
 //

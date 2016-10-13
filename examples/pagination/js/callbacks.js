@@ -1,9 +1,11 @@
-function displayPage(results) {
+function displayPage(results, rangeLeft, rangeRight, count) {
     $('#results tbody').empty();
+
+    $('#meta').text('Displaying ' + rangeLeft + '-' + rangeRight + ' of ' + count);
 
     for (let row of results) {
         let tr = $('<tr />');
-        for (let field of ['id', 'name', 'category', 'sub_category', 'container_type', 'price_per_unit', 'margin']) {
+        for (let field of ['id', 'name', 'category', 'sub_category', 'price_per_unit', 'margin']) {
             tr.append($('<td />').text(row[field]));
         }
 
@@ -23,7 +25,7 @@ function ajaxOrCached(query, page, handler) {
         'dataType': 'json',
         'success' : result => {
             cache[[query, page]] = result;
-            handler(result)
+            handler(result);
         }
     });
 }
@@ -33,9 +35,10 @@ function showPage(query, page) {
         $('.paging-control').addClass('enabled');
         let prev = results.prev;
         let next = results.next;
-        let list = results.results;
 
-        displayPage(list);
+        console.log(results);
+
+        displayPage(results.results, results.rangeLeft, results.rangeRight, results.count);
 
         // NOTE: This is not equivalent to the arrows version. This
         // pre-fetching will not be canceled when the user interacts

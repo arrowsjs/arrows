@@ -26,10 +26,13 @@ type item struct {
 }
 
 type result struct {
-	Prev    int    `json:"prev"`
-	Next    int    `json:"next"`
-	Query   string `json:"query"`
-	Results []item `json:"results"`
+	Query      string `json:"query"`
+	Results    []item `json:"results"`
+	Prev       int    `json:"prev"`
+	Next       int    `json:"next"`
+	RangeLeft  int    `json:"rangeLeft"`
+	RangeRight int    `json:"rangeRight"`
+	Count      int    `json:"count"`
 }
 
 //
@@ -46,11 +49,19 @@ func fetchResults(q string, page int) result {
 	m := min(len(results), (page-1)*pageSize)
 	n := min(len(results), (page-0)*pageSize)
 
+	left := m + 1
+	if len(results) == 0 {
+		left = 0
+	}
+
 	return result{
-		Query:   q,
-		Prev:    page - 1,
-		Next:    page + 1,
-		Results: results[m:n],
+		Query:      q,
+		Results:    results[m:n],
+		Prev:       page - 1,
+		Next:       page + 1,
+		RangeLeft:  left,
+		RangeRight: n,
+		Count:      len(results),
 	}
 }
 
