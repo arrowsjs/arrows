@@ -1,8 +1,3 @@
-function initShuffle() {
-    /* @arrow :: _ ~> Number */
-    return NUM_ITEMS - 1;
-}
-
 function initSort() {
     /* @arrow :: _ ~> (Number, Bool, Number) */
     return [NUM_ITEMS, false, 0];
@@ -62,7 +57,7 @@ function startWhenPressed(elem, arrow) {
 }
 
 var doSort = animate(initSort.lift(), sort.lift());
-var doShuffle = animate(initShuffle.lift(), shuffle.lift());
+var doShuffle = animate((NUM_ITEMS - 1).lift(), shuffle.lift());
 
 startWhenPressed('#sort', doSort).run();
 startWhenPressed('#shuffle', doShuffle).run();

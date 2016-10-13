@@ -55,11 +55,6 @@ const handle = new LiftedArrow((results, rangeLeft, rangeRight, count) => {
 //
 // Data Routing
 
-const initPage = new LiftedArrow(() =>
-    /* @arrow :: _ ~> Number */
-    0
-);
-
 const getVal = new LiftedArrow((elem, event) =>
     /* @arrow :: (Elem, Event) ~> String */
     $(elem).val()
@@ -132,7 +127,7 @@ const paging = Arrow.fix(a => Arrow.seq([
 ]));
 
 const filtering = Arrow.fix(a => new ElemArrow('#filter').on('keyup',
-    Arrow.fanout([getVal, initPage]).seq(paging.after(400).noemit().any(a))
+    Arrow.fanout([getVal, (0).lift()]).seq(paging.after(400).noemit().any(a))
 ));
 
 filtering.run();

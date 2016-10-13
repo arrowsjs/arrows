@@ -49,11 +49,6 @@ const stop = new LiftedArrow(song => {
     song.prop('currentTime', 0);
 });
 
-const initIndex = new LiftedArrow(() =>
-    /* @arrow :: _ ~> Number */
-    0
-);
-
 const incr = new LiftedArrow(i =>
     /* @arrow :: Number ~> Number */
     i >= songNames.length - 1 ? 0 : i + 1
@@ -100,7 +95,7 @@ const onPause = getSong.seq(pause).remember().tap(showPlay).seq(Arrow.any([
     changeSong
 ])).triggeredBy('#music-pause', 'click');
 
-const player = initIndex.tap(showPause).seq(Arrow.fix(a =>
+const player = (0).lift().tap(showPause).seq(Arrow.fix(a =>
     Arrow.any([loadAndPlaySong.seq(incr), changeSong, onPause]).seq(a)
 ));
 

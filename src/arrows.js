@@ -39,6 +39,15 @@ Function.prototype.lift = function() {
   return new LiftedArrow(this);
 }
 
+Number.prototype.lift = function() {
+  var value = this.valueOf();
+  
+  return new LiftedArrow(function() {
+      /* @arrow :: _ ~> Number */
+      return value;
+  });
+}
+
 //
 // Arrow Infrastructure
 //
