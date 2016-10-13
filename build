@@ -1,10 +1,18 @@
 #!/bin/bash
 
-mkdir -p bin
-jison src/grammar.jison -o bin/parser.js
-cat src/arrows.js > bin/arrows.js
-cat src/builtins.js >> bin/arrows.js
-cat src/combinators.js >> bin/arrows.js
-cat src/types.js >> bin/arrows.js
-cat src/typechecker.js >> bin/arrows.js
-cat src/util.js >> bin/arrows.js
+mkdir -p dist
+
+# Build parser
+jison src/grammar.jison -o dist/parser.js
+
+# Build arrows
+cat src/arrows.js > dist/arrows.js
+cat src/builtins.js >> dist/arrows.js
+cat src/combinators.js >> dist/arrows.js
+cat src/types.js >> dist/arrows.js
+cat src/typechecker.js >> dist/arrows.js
+cat src/util.js >> dist/arrows.js
+
+# Build legacy version
+babel dist/parser.js > dist/parser-legacy.js
+babel dist/arrows.js > dist/arrows-legacy.js
