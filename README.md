@@ -22,29 +22,76 @@ todo
 
 ### Builtins
 
-#### ElemArrow('selector')
+#### Elem
 
-todo
+The Elem arrow returns the *current* set of elements matching the selector supplied at
+construction. The value returned is a jQuery object, not a raw DOM object. This arrow
+ignores its input. This arrow is synchronous.
 
-#### AjaxArrow(confFn)
+#### Event
 
-todo
+The Event arrow takes an element as input and registers an event handler for the event
+type supplied at construction. The arrow will resume execution once the event occurs,
+returning the event object. This arrow is asynchronous.
 
-#### EventArrow('name')
+```javascript
+var elem1 = new ElemArrow('#byIdent');
+var elem2 = new ElemArrow('.byClass');
 
-todo
+elem1.seq(new EventArrow('click')); // Fires after object with ID is clicked
+elem2.seq(new EventArorw('click')); // Fires after any object with class is clicked
+```
 
-#### DelayArrow(milliseconds)
+#### Delay
 
-todo
+The Delay arrow will pause execution of the arrow for a number of milliseconds supplied
+at construction. This arrow returns its input unchanged. This arrow is asynchronous.
 
-#### SplitArrow(n)
+```javascript
+printHello.seq(new DelayArrow(5000)).seq(printWorld);
+```
 
-todo
+#### Ajax
 
-#### NthArrow(n)
+The Ajax arrow makes a remote request and returns the response body. This arrow must be
+supplied a configuration function as construction time. This arrow is asynchronous. When
+executed, the arrow will pass the input to the configuration function which is expected
+to return an object of Ajax options. For documentation on available options, see the
+[jQuery docs](http://api.jquery.com/jquery.ajax/)). The return value will be formatted
+according to the `dataType` option.
 
-todo
+**TODO** - talk about type annotation
+
+```javascript
+var ajax = new AjaxArrow(function(searchTerm) {
+    return {
+        'url': 'http://api.com/search/' + searchTerm,
+        'dataType': 'json'
+    };
+});
+
+ajax.seq(handleJson);
+```
+
+#### Split
+
+The Split arrow will clone its input $n$ times and output a $n$-tuple. The value $n$ is
+supplied at construction. This is often useful when several arrows running concurrently
+should begin executing with the same input. This arrow is synchronous.
+
+```javascript
+new SplitArrow(3).seq(Arrow.all([arrow1, arrow2, arrow3])); // same input
+```
+
+#### Nth
+
+The Nth arrow will return the $n$th element from a $k$-tuple where $k$ no less than $n$.
+The value $n$ is supplied at construction and is one-indexed (one, not zero, refers to the
+first element of a tuple). This arrow is synchronous.
+
+```javascript
+Arrow.all([arrow1, arrow2, arrow3]).seq(new NthArrow(2)); // only care about second output
+```
 
 ### Combinators
 
