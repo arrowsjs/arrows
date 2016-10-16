@@ -80,7 +80,7 @@ supplied at construction. This is often useful when several arrows running concu
 should begin executing with the same input. This arrow is synchronous.
 
 ```javascript
-new SplitArrow(3).seq(Arrow.all([arrow1, arrow2, arrow3])); // same input
+new SplitArrow(3).seq(Arrow.all([arrow1, arrow2, arrow3])); // Arrows given same input
 ```
 
 #### Nth
@@ -90,7 +90,7 @@ The value *n* is supplied at construction and is one-indexed (one, not zero, ref
 first element of a tuple). This arrow is synchronous.
 
 ```javascript
-Arrow.all([arrow1, arrow2, arrow3]).seq(new NthArrow(2)); // only care about second output
+Arrow.all([arrow1, arrow2, arrow3]).seq(new NthArrow(2)); // Extract arrow2's output
 ```
 
 ### Combinators
