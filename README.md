@@ -14,13 +14,13 @@ For literature and examples, see the [Project Homepage](http://arrows.eric-fritz
 
 ### Lifting, Running, and Cancellation
 
-todo
+**TODO**
 
 ---
 
 ### Typechecking
 
-todo
+**TODO**
 
 ---
 
@@ -103,27 +103,114 @@ Arrow.all([arrow1, arrow2, arrow3]).seq(new NthArrow(2)); // Extract arrow2's ou
 
 #### Seq
 
-todo
+The sequencing combinator will use the output of one arrow as the input of another. Many
+arrows can be sequenced together at once. If one arrow in the chain is asynchronous, the
+execution of the chain will block.
+
+```javascript
+Arrow.seq([arrow1, arrow2, arrow3]); // Pass arrow1's output to arrow2,
+                                     // then arrow2's output to arrow3
+```
 
 #### All
 
-todo
+The all combinator sequences multiple arrows in parallel. Both the input and output of
+the resulting arrow are tuples, where each item of the tuple corresponds to one of the
+sub-arrows.
+
+The arrows will begin to execute in-order. If an asynchronous arrow is executed, the
+next arrow in the chain will begin to execute *immediately*. The resulting arrow will
+block until all arrows have completed.
+
+```javascript
+Arrow.all([click1, click2, click3]); // Takes three elements, returns three clicks
+```
 
 #### Any
 
-todo
+Like the all combinator, the any combinator sequences multiple arrows in parallel; unlike
+the all combinator, the any combinator will allow only one branch of execution to complete.
+
+Each arrow used as input to the any combinator must be asynchronous (at some point during
+its execution). The arrows will begin to execute in-order. Each arrow will be partially
+executed and waiting for an external event (user click, timer, Ajax response). The first
+arrow to resume execution will be allowed to complete, and the event listeners in all the
+other branches will be removed. This arrow returns the result of the branch that resumed
+execution.
+
+The input to the resulting arrow will be fed to each sub-arrow. The resulting arrow is
+asynchronous.
+
+```javascript
+Arrow.any([ajaxServer1, ajaxServer2, ajaxServer3]); // The result will be the response of
+                                                    // the fastest server
+```
 
 #### NoEmit
 
-todo
+The noemit combinator wraps a single arrow so that any progress made within the arrow
+will not cause the cancellation of another branch running concurrently with the any
+combinator.
+
+The noemit combinator **forces** progress to be made at the end of execution. Therefore,
+the resulting arrow is asynchronous, regardless if the wrapped arrow was asynchronous or
+not.
+
+```javascript
+var a1 = Arrow.any([
+    new DelayArrow(5000),
+    Arrow.all([click1, click2, click3])
+]);
+
+var a2 = Arrow.any([
+    new DelayArrow(5000),
+    Arrow.all([click1, click2, click3]).noemit()
+]);
+
+a1.run(); // Timer is canceled by clicking one element
+a2.run(); // Timer is canceled by clicking all three elements
+```
 
 #### Try
 
-todo
+The try combinator is constructed with a *protected* arrow, a *success* arrow, and an
+*error handler*. If an exception is thrown within the protected arrow, then the error
+handler is executed. Otherwise, the protected and success arrows behave as if they were
+sequenced.
+
+If an error is thrown from within the success arrow, the error handler will **not** be
+invoked. For safety within the success arrow or the error handler, the arrow must be
+nested within another try combinator.
+
+**TODO** - talk about required type of handler
+
+```javascript
+Arrow.try(ajax, handle, displayError); // If the Ajax request fails, display an error
+```
 
 #### Fix
 
-todo
+The fix-point combinator constructs an arrow which can refer to itself. This is useful
+for loops and sequencing repetitive actions. The combinator takes an arrow builder
+function as input. The input to this function is an arrow which acts as a reference to
+the arrow being built. The function must return an arrow.
+
+```javascript
+Arrow.fix(function(a) {
+    return work.lift().wait(25).seq(a); // Infinitely invoke work with 25ms breaks
+});
+```
+
+*Caution:* It is possible to create an arrow which is well-composed and well-typed, but
+will recursive infinitely in a non-useful way. For example, the following arrow will
+never execute the `print` function, as it always begins to execute itself from the
+beginning immediately.
+
+```javascript
+Arrow.fix(function(a) {
+    return a.seq(print.lift()).after(25);
+});
+```
 
 ## License
 
