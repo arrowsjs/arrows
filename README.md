@@ -22,9 +22,9 @@ todo
 
 todo
 
-### Builtins
-
 ---
+
+### Builtins
 
 #### Elem
 
@@ -97,9 +97,9 @@ first element of a tuple). This arrow is synchronous.
 Arrow.all([arrow1, arrow2, arrow3]).seq(new NthArrow(2)); // Extract arrow2's output
 ```
 
-### Combinators
-
 ---
+
+### Combinators
 
 #### Seq
 
