@@ -16,11 +16,15 @@ For literature and examples, see the [Project Homepage](http://arrows.eric-fritz
 
 todo
 
+---
+
 ### Typechecking
 
 todo
 
 ### Builtins
+
+---
 
 #### Elem
 
@@ -94,6 +98,8 @@ Arrow.all([arrow1, arrow2, arrow3]).seq(new NthArrow(2)); // Extract arrow2's ou
 ```
 
 ### Combinators
+
+---
 
 #### Seq
 
