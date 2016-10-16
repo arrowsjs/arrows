@@ -1,10 +1,76 @@
 # Arrows
 
-Description.
+The Arrows library provides methods for composing asynchronous functions in JavaScript.
+
+An arrow can be viewed as a simple wrapper around a JavaScript function. Internally, when
+a function is lifted into an arrow it is converted into
+[Continuation Passing Style](https://en.wikipedia.org/wiki/Continuation-passing_style).
+This allows the composition of both synchronous and asynchronous arrows to use the same
+syntax - all callback functions are invisible to the user.
+
+For literature and examples, see the [Project Homepage](http://arrows.eric-fritz.com).
 
 ## Usage
 
-Coming soon.
+### Lifting, Running, and Cancellation
+
+todo
+
+### Typechecking
+
+todo
+
+### Builtins
+
+#### ElemArrow('selector')
+
+todo
+
+#### AjaxArrow(confFn)
+
+todo
+
+#### EventArrow('name')
+
+todo
+
+#### DelayArrow(milliseconds)
+
+todo
+
+#### SplitArrow(n)
+
+todo
+
+#### NthArrow(n)
+
+todo
+
+### Combinators
+
+#### Seq
+
+todo
+
+#### All
+
+todo
+
+#### Any
+
+todo
+
+#### NoEmit
+
+todo
+
+#### Try
+
+todo
+
+#### Fix
+
+todo
 
 ## License
 
