@@ -75,7 +75,7 @@ ajax.seq(handleJson);
 
 #### Split
 
-The Split arrow will clone its input $n$ times and output a $n$-tuple. The value $n$ is
+The Split arrow will clone its input *n* times and output a *n*-tuple. The value *n* is
 supplied at construction. This is often useful when several arrows running concurrently
 should begin executing with the same input. This arrow is synchronous.
 
@@ -85,8 +85,8 @@ new SplitArrow(3).seq(Arrow.all([arrow1, arrow2, arrow3])); // same input
 
 #### Nth
 
-The Nth arrow will return the $n$th element from a $k$-tuple where $k$ no less than $n$.
-The value $n$ is supplied at construction and is one-indexed (one, not zero, refers to the
+The Nth arrow will return the *n*th element from a *k*-tuple where *k* no less than *n*.
+The value *n* is supplied at construction and is one-indexed (one, not zero, refers to the
 first element of a tuple). This arrow is synchronous.
 
 ```javascript
