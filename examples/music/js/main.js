@@ -70,7 +70,7 @@ const showPause = new LiftedArrow(() => {
 });
 
 const blockUntilLoaded = Arrow.any([
-    checkIfReady.seq(Arrow.throwFalse().catch(new Delay(Infinity))).noemit(),
+    checkIfReady.seq(Arrow.throwFalse().catch(new DelayArrow(Infinity))).noemit(),
     new EventArrow('canplay canplaythrough')
 ]);
 

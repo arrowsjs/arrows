@@ -97,11 +97,11 @@ class Arrow {
     }
 
     wait(duration) {
-        return this.seq(new Delay(duration));
+        return this.seq(new DelayArrow(duration));
     }
 
     after(duration) {
-        return new Delay(duration).seq(this);
+        return new DelayArrow(duration).seq(this);
     }
 
     triggeredBy(selector, event) {

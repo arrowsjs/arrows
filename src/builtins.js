@@ -217,7 +217,7 @@ class EventArrow extends SimpleAsyncArrow {
     }
 }
 
-class Delay extends SimpleAsyncArrow {
+class DelayArrow extends SimpleAsyncArrow {
     constructor(duration) {
         // 'a ~> 'a
         super(construct(() => {

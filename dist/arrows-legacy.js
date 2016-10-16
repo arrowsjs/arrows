@@ -134,12 +134,12 @@ var Arrow = (function () {
     }, {
         key: 'wait',
         value: function wait(duration) {
-            return this.seq(new Delay(duration));
+            return this.seq(new DelayArrow(duration));
         }
     }, {
         key: 'after',
         value: function after(duration) {
-            return new Delay(duration).seq(this);
+            return new DelayArrow(duration).seq(this);
         }
     }, {
         key: 'triggeredBy',
@@ -678,14 +678,14 @@ var EventArrow = (function (_SimpleAsyncArrow2) {
     return EventArrow;
 })(SimpleAsyncArrow);
 
-var Delay = (function (_SimpleAsyncArrow3) {
-    _inherits(Delay, _SimpleAsyncArrow3);
+var DelayArrow = (function (_SimpleAsyncArrow3) {
+    _inherits(DelayArrow, _SimpleAsyncArrow3);
 
-    function Delay(duration) {
-        _classCallCheck(this, Delay);
+    function DelayArrow(duration) {
+        _classCallCheck(this, DelayArrow);
 
         // 'a ~> 'a
-        _get(Object.getPrototypeOf(Delay.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(DelayArrow.prototype), 'constructor', this).call(this, construct(function () {
             var alpha = ParamType.fresh();
             return new ArrowType(alpha, alpha);
         }));
@@ -697,7 +697,7 @@ var Delay = (function (_SimpleAsyncArrow3) {
     // Simple (Generalized) Arrows
     //
 
-    _createClass(Delay, [{
+    _createClass(DelayArrow, [{
         key: 'call',
         value: function call(x, p, k, h) {
             var cancel = function cancel() {
@@ -718,7 +718,7 @@ var Delay = (function (_SimpleAsyncArrow3) {
         }
     }]);
 
-    return Delay;
+    return DelayArrow;
 })(SimpleAsyncArrow);
 
 var SplitArrow = (function (_Arrow3) {
