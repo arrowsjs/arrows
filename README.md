@@ -32,6 +32,11 @@ The Elem arrow returns the *current* set of elements matching the selector suppl
 construction. The value returned is a jQuery object, not a raw DOM object. This arrow
 ignores its input. This arrow is synchronous.
 
+```javascript
+var elem1 = new ElemArrow('#byIdent');
+var elem2 = new ElemArrow('.byClass');
+```
+
 #### Event
 
 The Event arrow takes an element as input and registers an event handler for the event
@@ -39,11 +44,8 @@ type supplied at construction. The arrow will resume execution once the event oc
 returning the event object. This arrow is asynchronous.
 
 ```javascript
-var elem1 = new ElemArrow('#byIdent');
-var elem2 = new ElemArrow('.byClass');
-
-elem1.seq(new EventArrow('click')); // Fires after object with ID is clicked
-elem2.seq(new EventArorw('click')); // Fires after any object with class is clicked
+new ElemArrow('#byIdent').seq(new EventArrow('click')); // Fires after object with ID is clicked
+new ElemArrow('.byClass').seq(new EventArorw('click')); // Fires after any object with class is clicked
 ```
 
 #### Delay
@@ -52,7 +54,11 @@ The Delay arrow will pause execution of the arrow for a number of milliseconds s
 at construction. This arrow returns its input unchanged. This arrow is asynchronous.
 
 ```javascript
-printHello.seq(new DelayArrow(5000)).seq(printWorld);
+Arrow.seq([
+    printHello,
+    new DelayArrow(5000), // Pause for 5 second
+    printWorld
+]);
 ```
 
 #### Ajax
@@ -103,9 +109,9 @@ Arrow.all([arrow1, arrow2, arrow3]).seq(new NthArrow(2)); // Extract arrow2's ou
 
 #### Seq
 
-The sequencing combinator will use the output of one arrow as the input of another. Many
-arrows can be sequenced together at once. If one arrow in the chain is asynchronous, the
-execution of the chain will block.
+The Seq combinator will use the output of one arrow as the input of another. Many arrows
+can be sequenced together at once. If one arrow in the chain is asynchronous, the execution
+of the chain will block.
 
 ```javascript
 Arrow.seq([arrow1, arrow2, arrow3]); // Pass arrow1's output to arrow2,
@@ -114,7 +120,7 @@ Arrow.seq([arrow1, arrow2, arrow3]); // Pass arrow1's output to arrow2,
 
 #### All
 
-The all combinator sequences multiple arrows in parallel. Both the input and output of
+The All combinator sequences multiple arrows in parallel. Both the input and output of
 the resulting arrow are tuples, where each item of the tuple corresponds to one of the
 sub-arrows.
 
@@ -128,10 +134,10 @@ Arrow.all([click1, click2, click3]); // Takes three elements, returns three clic
 
 #### Any
 
-Like the all combinator, the any combinator sequences multiple arrows in parallel; unlike
-the all combinator, the any combinator will allow only one branch of execution to complete.
+Like the All combinator, the Any combinator sequences multiple arrows in parallel; unlike
+the All combinator, the Any combinator will allow only one branch of execution to complete.
 
-Each arrow used as input to the any combinator must be asynchronous (at some point during
+Each arrow used as input to the Any combinator must be asynchronous (at some point during
 its execution). The arrows will begin to execute in-order. Each arrow will be partially
 executed and waiting for an external event (user click, timer, Ajax response). The first
 arrow to resume execution will be allowed to complete, and the event listeners in all the
@@ -148,11 +154,11 @@ Arrow.any([ajaxServer1, ajaxServer2, ajaxServer3]); // The result will be the re
 
 #### NoEmit
 
-The noemit combinator wraps a single arrow so that any progress made within the arrow
+The NoEmit combinator wraps a single arrow so that any progress made within the arrow
 will not cause the cancellation of another branch running concurrently with the any
 combinator.
 
-The noemit combinator **forces** progress to be made at the end of execution. Therefore,
+The NoEmit combinator **forces** progress to be made at the end of execution. Therefore,
 the resulting arrow is asynchronous, regardless if the wrapped arrow was asynchronous or
 not.
 
@@ -173,14 +179,14 @@ a2.run(); // Timer is canceled by clicking all three elements
 
 #### Try
 
-The try combinator is constructed with a *protected* arrow, a *success* arrow, and an
+The Try combinator is constructed with a *protected* arrow, a *success* arrow, and an
 *error handler*. If an exception is thrown within the protected arrow, then the error
 handler is executed. Otherwise, the protected and success arrows behave as if they were
 sequenced.
 
 If an error is thrown from within the success arrow, the error handler will **not** be
 invoked. For safety within the success arrow or the error handler, the arrow must be
-nested within another try combinator.
+nested within another Try combinator.
 
 **TODO** - talk about required type of handler
 
@@ -190,7 +196,7 @@ Arrow.try(ajax, handle, displayError); // If the Ajax request fails, display an 
 
 #### Fix
 
-The fix-point combinator constructs an arrow which can refer to itself. This is useful
+The Fix-point combinator constructs an arrow which can refer to itself. This is useful
 for loops and sequencing repetitive actions. The combinator takes an arrow builder
 function as input. The input to this function is an arrow which acts as a reference to
 the arrow being built. The function must return an arrow.
