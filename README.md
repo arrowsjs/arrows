@@ -14,13 +14,75 @@ For literature and examples, see the [Project Homepage](http://arrows.eric-fritz
 
 ### Lifting, Running, and Cancellation
 
-**TODO**
+A JavaScript function can be *lifted* into an arrow. This can be done either by creating
+a `LiftedArrow`, or calling the `lift` function.
+
+```javascript
+var a = new LiftedArrow(fn);
+var b = fn.lift();
+```
+
+Multiple arrows can be composed together to build a state machine that will respond to
+external events (user interacting with a webpage, a remote server response, a timer or
+interval expiring, etc). Once a state machine is built, it can be run - it does not
+execute implicitly.
+
+Calling the `run` method on an arrow will return a *progress object*. Each invocation
+will return a new progress object. The execution of an arrow can be stopped by calling
+the `cancel` method on the progress object.
+
+```javascript
+var p = arrow.run();
+p.cancel();
+```
+
+Notice that the call to `cancel` in the example above will only be reached once the
+arrow reaches a point where it is blocked by an external event. Arrows can only be
+canceled at asynchronous points.
 
 ---
 
 ### Typechecking
 
-**TODO**
+Arrows are bundled with an optional typesystem. Each arrow carries its own type, and
+composing two arrows will fail if the types clash. This helps discover errors which
+are particularly hard to debug in this style of programming much earlier.
+
+Built-in arrows have already been given a type. The type of a arrow resulting from a
+combinator has its type inferred and does not require anything from the user.
+
+Lifted functions must be *annotated* with a type. This is done by adding a comment in
+the lifted function of the following form.
+
+```javascript
+var a = function(a, b, c) {
+    /* @arrow :: (Bool, Number, Number) ~> Number */
+    return a ? b * c : b + c;
+}
+```
+
+The types which can be used are given below.
+
+Type                  | Description
+----                  | -----------
+'a, 'b, 'c            | A type variable
+_                     | A value which cannot be used meaningful (null, undefined)
+T1+T2                 | A value of type T1 or T2
+[T]                   | An array with elements of type T
+(T1, T2, ...)         | A fixed-size array whose ith element has type T(i)
+{l1: T1, l2: T2, ...} | An object whose field l(i) has type T(i)
+<l1: T1, l2: T2, ...> | A special object with a tag and a wrapped value; if the tag is l(i),
+                        then the value has type T(i)
+
+The built-in types `String`, `Bool`, `Number`, `Elem`, and `Event` are also supported.
+Additional user-defined types can be used by name (e.g. `User` or `Post`). Such types are
+treated opaquely by the type checker and will not check the fields of the object.
+
+If a lifted function does not have an annotation it is assumed to be `_ ~> _`.
+
+**TODO** - talk about constraints
+**TODO** - talk about exception types
+**TODO** - talk about type registration
 
 ---
 
