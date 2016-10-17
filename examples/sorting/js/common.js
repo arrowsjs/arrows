@@ -1,12 +1,12 @@
-const NUM_ITEMS = 15;
+const NUM_ITEMS = 10;
 const ANIMATION = 75;
 const ANIMATION_PARTIAL = 3 * ANIMATION / 4;
 
 $(document).ready(function() {
     for (var i = 0; i < NUM_ITEMS; i++) {
         $('#sort-div').append($('<div />').css({
-            'top': i * 15 + 'px',
-            'width': (i + 1) * 4 + 'ex'
+            'top': i * 10 + 'px',
+            'width': (i + 1) * 25 + 'px'
         }));
     }
 });
