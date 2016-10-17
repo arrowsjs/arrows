@@ -1,0 +1,18 @@
+#!/bin/bash
+
+rm -rf temp
+mkdir -p temp
+
+# Build library
+./build
+
+# Copy required files
+cp -r website/* temp
+cp -r dist temp
+cp -r examples temp
+
+# Build website documents
+tar -cvf website.tar temp
+
+# Cleanup
+rm -r temp

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Arrows - Async Composition in JavaScript</title>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+
+        <style type="text/css">
+            body {
+                padding: 20px;
+                text-align: justify;
+            }
+
+            h2, h3 {
+                margin-top: 10px;
+                padding-bottom: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h2>Arrows - Asynchronous Composition in JavaScript</h2>
+
+        <hr />
+
+        <h3>Source Code</h3>
+
+        <div>
+            <a href="https://github.com/efritz/arrows">Source code</a>, <a href="https://github.com/efritz/arrows/tree/master/README.md">usage documentation</a>, and <a href="https://github.com/efritz/arrows/tree/master/examples">example source code</a> is available on GitHub.
+        </div>
+
+        <h3>Distributables</h3>
+
+        <div>
+            Include the following two files (parser first) to use the library.
+
+            <ul>
+                <li><a href="dist/arrows.js">arrows.js</a></li>
+                <li><a href="dist/parser.js">parser.js</a></li>
+            </ul>
+
+            For a version that works pre-ES6, use the legacy versions.
+
+            <ul>
+                <li><a href="dist/arrows-legacy.js">arrows-legacy.js</a></li>
+                <li><a href="dist/parser-legacy.js">parser-legacy.js</a></li>
+            </ul>
+        </div>
+
+        <h3>Examples</h3>
+
+        <div>
+            <ul>
+                <li><a href="../examples/music/index.html" target="popup" onclick="window.open('../examples/music/index.html', 'Music', 'width=500,height=200')">Music</a></li>
+                <li><a href="../examples/memory/index.html" target="popup" onclick="window.open('../examples/memory/index.html', 'Memory', 'width=500,height=425')">Memory</a></li>
+                <li><a href="../examples/sorting/index.html" target="popup" onclick="window.open('../examples/sorting/index.html', 'Sorting', 'width=300,height=325')">Sorting</a></li>
+                <li><a href="../examples/pagination/index.html" target="popup" onclick="window.open('../examples/pagination/index.html', 'Pagination', 'width=750,height=450')">Pagination</a></li>
+            </ul>
+        </div>
+
+        <h3>Publications</h3>
+
+        <div>
+            <ul>
+                <li>
+                    <div><a href="papers/Typing and Semantics of Aynchronous Arrows in JavaScript.pdf"><strong>Typing and Semantics of Aynchronous Arrows in JavaScript</strong></a></div>
+                    <div><a href="http://www.eric-fritz.com">Fritz, Eric</a>, and <a href="http://uwm.edu/engineering/people/zhao-ph-d-tian/">Zhao, Tian</a></div>
+                    <div><em>In Revision, 2016.</em></div>
+                    <div>Asynchronous programming with callbacks in JavaScript leads to code that is difficult to understand and maintain. Arrows, a generalization of monads, are an elegant solution to asynchronous program composition. Unfortunately, improper arrow composition can cause mysterious failures with subtle sources. We present an arrows-based DSL in JavaScript which encodes semantics similar to ES6 Promises and an optional type-checker that reports errors at arrow composition time.</div>
+                </li>
+
+                <li>
+                    <div><a href="papers/Arrows in Commercial Web Applications.pdf"><strong>Arrows in Commercial Web Applications</strong></a></div>
+                    <div><a href="http://www.eric-fritz.com">Fritz, Eric</a>, Antony Jose, and <a href="http://uwm.edu/engineering/people/zhao-ph-d-tian/">Zhao, Tian</a></div>
+                    <div><em><a href="http://conferences.computer.org/hotweb2016/">HotWeb</a>, 2016.</em></div>
+                    <div>Developing scalable and robust Web applications is difficult. One obstacle is JavaScript's event model, which makes asynchronous programs hard to maintain and extend. In this paper, we present the case study of a JavaScript library based on Arrows for asynchronous computation. Our library enables modular and more understandable programs and supports static type inference and visualization of control flow.</div>
+                    <div><a href="slides/HotWeb - 2016.pdf">Workshop Slides</a></div>
+                </li>
+
+                <li>
+                    <div><a href="papers/Type Inference of Asynchronous Arrows in JavaScript.pdf"><strong>Type Inference of Asynchronous Arrows in JavaScript</strong></a></div>
+                    <div><a href="http://www.eric-fritz.com">Fritz, Eric</a>, and <a href="http://uwm.edu/engineering/people/zhao-ph-d-tian/">Zhao, Tian</a></div>
+                    <div><em><a href="http://2015.splashcon.org/track/rebls2015">Reactive and Event-based Languages &amp; Systems (REBLS)</a>, 2015.</em></div>
+                    <div>Asynchronous programming with callbacks in JavaScript leads to code that is difficult to understand and maintain. Arrows, a generalization of monads, are an elegant solution to asynchronous program composition. Unfortunately, improper arrow composition can cause mysterious failures with subtle sources. We present an arrows-based DSL in JavaScript which encodes semantics similar to ES6 Promises and an optional type-checker that reports errors at arrow composition time.</div>
+                    <div><a href="slides/REBLS - 2015.pdf">Workshop Slides</a></div>
+                </li>
+            </ul>
+        </div>
+    </body>
+</html>
