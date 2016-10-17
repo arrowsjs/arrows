@@ -3,20 +3,57 @@
 <html lang="en">
     <head>
         <title>Music Player</title>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+
+        <style type="text/css">
+            body {
+                padding: 20px;
+            }
+
+            #meta {
+                text-align: center;
+            }
+
+            #controls {
+                padding-top: 20px;
+                margin: auto;
+                width: 250px;
+                text-align: center;
+            }
+
+            #music-prev {
+                margin-right: 25px;
+            }
+
+            #music-next {
+                margin-left: 25px;
+            }
+
+            .thanks {
+                bottom: 10px;
+                right: 10px;
+                position: absolute;
+            }
+        </style>
     </head>
 
     <body>
-        <div id="song-container"></div>
-
-        <div id="music-controls">
+        <div id="meta">
             <div id="music-title">Song Title</div>
             <div id="music-time">Song Time</div>
-
-            <a href="javascript:void(0);" id="music-prev">Prev</a>
-            <a href="javascript:void(0);" id="music-play">Play</a>
-            <a href="javascript:void(0);" id="music-pause">Pause</a>
-            <a href="javascript:void(0);" id="music-next">Next</a>
         </div>
+
+        <div id="controls">
+            <a href="javascript:void(0);" class="control" id="music-prev"><img src="images/prev.png" /></a>
+            <a href="javascript:void(0);" class="control" id="music-play"><img src="images/play.png" /></a>
+            <a href="javascript:void(0);" class="control" id="music-pause"><img src="images/pause.png" /></a>
+            <a href="javascript:void(0);" class="control" id="music-next"><img src="images/next.png" /></a>
+        </div>
+
+        <div id="songs"></div>
+
+        <span class="thanks">Music courtesy of <a href="http://www.recklessanddarlene.com/">Reckess &amp; Darlene</a>.</span>
 
         <script type="text/javascript">
             const baseUrl = 'http://www.recklessanddarlene.com/music/';

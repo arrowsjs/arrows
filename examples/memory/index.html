@@ -4,26 +4,42 @@
     <head>
         <title>Memory</title>
 
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+
         <style type="text/css">
+            body {
+                padding: 20px;
+                text-align: center;
+            }
+
             #grid {
-                width: 384px;
+                margin: auto;
+                text-align: center;
+                width: 300px;
+                padding-top: 20px;
             }
 
             .card {
-                height: 64px;
-                width: 64px;
+                float: left;
+                height: 65px;
+                width: 65px;
                 display: inline-block;
                 text-align: center;
+                font-family: Times;
                 border: 1px solid black;
                 font-size: 24pt;
-                padding: 10px;
+                padding: 8px;
                 margin: 5px;
+            }
+
+            #grid div:nth-child(4n+1) {
+                clear: both;
             }
         </style>
     </head>
 
     <body>
-        <button id="play">Play</button>
+        <button type="button" id="play" class="btn btn-secondary">Play</button>
         <div id="grid"></div>
 
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>

@@ -4,7 +4,13 @@
     <head>
         <title>Sorting</title>
 
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+
         <style type="text/css">
+            body {
+                padding: 20px;
+            }
+            
             #sort-div {
                 margin-top: 20px;
                 position: relative;
@@ -14,7 +20,7 @@
                 width: 0;
                 top: 0;
                 left: 0;
-                height: 5px;
+                height: 10px;
                 background: blue;
                 font-size: 8px;
                 position: absolute;
@@ -31,8 +37,9 @@
     </head>
 
     <body>
-        <button id="shuffle">Shuffle</button>
-        <button id="sort">Sort</button>
+        <button type="button" id="shuffle" class="btn btn-secondary">Shuffle</button>
+        <button type="button" id="sort" class="btn btn-primary">Sort</button>
+
         <div id="sort-div"></div>
 
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>

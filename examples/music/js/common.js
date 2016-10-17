@@ -23,7 +23,7 @@ function initAudio() {
             audio.append(source);
         }
 
-        $('#song-container').append(audio);
+        $('#songs').append(audio);
     }
 }
 

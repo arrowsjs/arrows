@@ -5,8 +5,8 @@ const ANIMATION_PARTIAL = 3 * ANIMATION / 4;
 $(document).ready(function() {
     for (var i = 0; i < NUM_ITEMS; i++) {
         $('#sort-div').append($('<div />').css({
-            'top': i * 8 + 'px',
-            'width': (i + 1) * 2 + 'ex'
+            'top': i * 15 + 'px',
+            'width': (i + 1) * 4 + 'ex'
         }));
     }
 });

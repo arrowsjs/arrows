@@ -24,7 +24,7 @@ const ajax = new AjaxArrow((query, page) => {
     /* @conf :: (String, Number)
      * @resp :: {query: String, prev: Number, next: Number, results: [{id: Number, name: String, category: String, sub_category: String, price_per_unit: Number, margin: Number}], rangeLeft: Number, rangeRight: Number, count: Number} */
     return {
-        'url'     : 'http://localhost:8080?q=' + query + '&page=' + page,
+        'url'     : 'http://arrows.eric-fritz.com:8080?q=' + query + '&page=' + page,
         'dataType': 'json'
     };
 });

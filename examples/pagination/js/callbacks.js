@@ -21,7 +21,7 @@ function ajaxOrCached(query, page, handler) {
     }
 
     $.ajax({
-        'url'     : 'http://localhost:8080?q=' + query + '&page=' + page,
+        'url'     : 'http://arrows.eric-fritz.com:8080?q=' + query + '&page=' + page,
         'dataType': 'json',
         'success' : result => {
             cache[[query, page]] = result;
