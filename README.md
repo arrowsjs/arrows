@@ -63,16 +63,15 @@ var a = function(a, b, c) {
 
 The types which can be used are given below.
 
-Type                  | Description
-----                  | -----------
-'a, 'b, 'c            | A type variable
-_                     | A value which cannot be used meaningful (null, undefined)
-T1+T2                 | A value of type T1 or T2
-[T]                   | An array with elements of type T
-(T1, T2, ...)         | A fixed-size array whose ith element has type T(i)
-{l1: T1, l2: T2, ...} | An object whose field l(i) has type T(i)
-<l1: T1, l2: T2, ...> | A special object with a tag and a wrapped value; if the tag is l(i),
-                        then the value has type T(i)
+Type                    | Description
+----                    | -----------
+`'a`, `'b`, `'c`        | A type variable
+`_`                     | A value which cannot be used meaningful (null, undefined)
+`T1+T2`                 | A value of type T1 or T2
+`[T]`                   | An array with elements of type T
+`(T1, T2, ...)`         | A fixed-size array whose ith element has type T(i)
+`{l1: T1, l2: T2, ...}` | An object whose field l(i) has type T(i)
+`<l1: T1, l2: T2, ...>` | A special object with a tag and a wrapped value; if the tag is l(i), then the value has type T(i)
 
 The built-in types `String`, `Bool`, `Number`, `Elem`, and `Event` are also supported.
 Additional user-defined types can be used by name (e.g. `User` or `Post`). Such types are
