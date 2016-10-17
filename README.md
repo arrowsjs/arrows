@@ -105,8 +105,8 @@ type supplied at construction. The arrow will resume execution once the event oc
 returning the event object. This arrow is asynchronous.
 
 ```javascript
-new ElemArrow('#byIdent').seq(new EventArrow('click')); // Fires after object with ID is clicked
-new ElemArrow('.byClass').seq(new EventArorw('click')); // Fires after any object with class is clicked
+Arrow.seq([new ElemArrow('#byIdent'), new EventArrow('click')]); // Fires after object with ID is clicked
+Arrow.seq([new ElemArrow('#byClass'), new EventArrow('click')]); // Fires after any object with class is clicked
 ```
 
 #### Delay
@@ -141,7 +141,7 @@ var ajax = new AjaxArrow(function(searchTerm) {
     };
 });
 
-ajax.seq(handleJson);
+Arrow.seq([ajax, handleJson]);
 ```
 
 #### Split
@@ -151,7 +151,7 @@ supplied at construction. This is often useful when several arrows running concu
 should begin executing with the same input. This arrow is synchronous.
 
 ```javascript
-new SplitArrow(3).seq(Arrow.all([arrow1, arrow2, arrow3])); // Arrows given same input
+Arrow.seq([new SplitArrow(3), Arrow.all([arrow1, arrow2, arrow3])]); // Arrows given same input
 ```
 
 #### Nth
@@ -161,7 +161,7 @@ The value *n* is supplied at construction and is one-indexed (one, not zero, ref
 first element of a tuple). This arrow is synchronous.
 
 ```javascript
-Arrow.all([arrow1, arrow2, arrow3]).seq(new NthArrow(2)); // Extract arrow2's output
+Arrow.seq([Arrow.all([arrow1, arrow2, arrow3]), new NthArrow(2)]); // Extract arrow2's output
 ```
 
 ---
@@ -264,7 +264,7 @@ the arrow being built. The function must return an arrow.
 
 ```javascript
 Arrow.fix(function(a) {
-    return work.lift().wait(25).seq(a); // Infinitely invoke work with 25ms breaks
+    return Arrow.seq([work, new DelayArrow(25), a]); // Infinitely invoke work with 25ms breaks
 });
 ```
 
@@ -275,7 +275,7 @@ beginning immediately.
 
 ```javascript
 Arrow.fix(function(a) {
-    return a.seq(print.lift()).after(25);
+    return Arrow.seq([a, new DelayArrow(25), print]);
 });
 ```
 
