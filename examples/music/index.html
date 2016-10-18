@@ -4,7 +4,7 @@
     <head>
         <title>Music Player</title>
 
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+        <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
 
         <style type="text/css">
             body {
@@ -35,6 +35,10 @@
                 right: 10px;
                 position: absolute;
             }
+
+            .control {
+                color: black;
+            }
         </style>
     </head>
 
@@ -45,10 +49,10 @@
         </div>
 
         <div id="controls">
-            <a href="javascript:void(0);" class="control" id="music-prev"><img src="images/prev.png" /></a>
-            <a href="javascript:void(0);" class="control" id="music-play"><img src="images/play.png" /></a>
-            <a href="javascript:void(0);" class="control" id="music-pause"><img src="images/pause.png" /></a>
-            <a href="javascript:void(0);" class="control" id="music-next"><img src="images/next.png" /></a>
+            <a href="javascript:void(0);" class="control" id="music-prev"><span class="glyphicon glyphicon-backward"></span></a>
+            <a href="javascript:void(0);" class="control" id="music-play"><span class="glyphicon glyphicon-play"></span></a>
+            <a href="javascript:void(0);" class="control" id="music-pause"><span class="glyphicon glyphicon-pause"></span></a>
+            <a href="javascript:void(0);" class="control" id="music-next"><span class="glyphicon glyphicon-forward"></span></a>
         </div>
 
         <div id="songs"></div>
