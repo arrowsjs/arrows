@@ -67,7 +67,7 @@ The types which can be used are given below.
 Type                    | Description
 ----                    | -----------
 `'a`, `'b`, `'c`        | A type variable
-`_`                     | A value which cannot be used meaningful (null, undefined)
+`_`                     | A value which cannot be used meaningfully (null, undefined)
 `T1+T2`                 | A value of type T1 or T2
 `[T]`                   | An array with elements of type T
 `(T1, T2, ...)`         | A fixed-size array whose ith element has type T(i)
