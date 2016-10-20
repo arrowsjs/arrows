@@ -1,10 +1,3 @@
-function setEnabled(enabled) {
-    return new LiftedArrow(button => {
-        /* @arrow :: Elem ~> _ */
-        button.prop('disabled', !enabled);
-    });
-}
-
 var selectOne = Arrow.bind('click', select.lift()).whileTrue();
 
 var round = Arrow.id()
@@ -26,6 +19,13 @@ var play = setup.lift()
     .wait(1000)
     .seq(game)
     .seq(won.lift());
+    
+function setEnabled(enabled) {
+    return new LiftedArrow(button => {
+        /* @arrow :: Elem ~> _ */
+        button.prop('disabled', !enabled);
+    });
+}
 
 function startWhenPressed(elem, arrow) {
     return new ElemArrow(elem).on('click', Arrow.id()
