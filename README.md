@@ -56,10 +56,11 @@ Built-in arrows have already been given a type. The type of a arrow resulting fr
 combinator has its type inferred and does not require anything from the user.
 
 Lifted functions must be *annotated* with a type. This is done by adding a comment in
-the lifted function of the following form.
+the lifted function of the following form. The type of an arrow requires, at a minimum,
+the input type and the return type.
 
 ```javascript
-var a = function(a, b, c) {
+var arr = function(a, b, c) {
     /* @arrow :: (Bool, Number, Number) ~> Number */
     return a ? b * c : b + c;
 }
@@ -78,13 +79,47 @@ Type                    | Description
 `<l1: T1, l2: T2, ...>` | A special object with a tag and a wrapped value; if the tag is l(i), then the value has type T(i)
 
 The built-in types `String`, `Bool`, `Number`, `Elem`, and `Event` are also supported.
-Additional user-defined types can be used by name (e.g. `User` or `Post`). Such types are
-treated opaquely by the type checker and will not check the fields of the object.
+Additional user-defined types can be used by name (e.g. `User` or `Post`). Such types
+are treated opaquely by the type checker and will not check the fields of the object.
 
 If a lifted function does not have an annotation it is assumed to be `_ ~> _`.
 
-**TODO** - talk about constraints
-**TODO** - talk about exception types
+A type may also have a set of **constraints** and a set of **exception types**. If the
+user supplies them, then they are annotated in the following form.
+
+```javascript
+var arr = function(x, y) {
+    /* @arrow :: ('a, 'a) ~> 'b \ ({'a <= Number+String, 'b <= 'a}, {MathError}) */
+    if (x == 42) { throw new MathError('Forbidden value for x.'); }
+    else         { return x + y; }
+}
+```
+
+In this example, the constraint set contains the constraint `'a <= Number+String` stating
+that the type variable `'a` must be a subtype of `Number+String`, and the constraint
+`'b <= 'a` stating that the return value must be a subtype of the input. The function may
+also throw a value of type `MathError`.
+
+Constraints are often unnecessary to annotate by hand, but frequently occur in the inferred
+type of a combinator. Combining two arrows do not requires the types to match **exactly**,
+but does requires that an arrow consuming a value from another arrow expect a supertype (a
+less specific type) of the annotated return value. For example, the following composition
+is legal.
+
+```javascript
+var arr1 = (function() {
+    /** @arrow :: _ ~> (Number, String, Bool) */
+    return [10, "foo", false];
+}).lift();
+
+var arr2 = (function(a, b) {
+    /** @arrow :: (Number, 'a) ~> 'a */
+    return b;
+}).lift();
+
+arr1.seq(arr2); // Inferred type is (Number, String, Bool) ~> String
+```
+
 **TODO** - talk about type registration
 
 ---
