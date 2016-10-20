@@ -1,7 +1,12 @@
 class ComposeError extends Error {
-  constructor(s) {
-    super(s);
-  }
+    constructor(message) {
+        super();
+        this.message = message;
+    }
+
+    toString() {
+        return this.message;
+    }
 }
 
 class Combinator extends Arrow {
