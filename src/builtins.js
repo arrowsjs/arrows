@@ -217,6 +217,30 @@ class EventArrow extends SimpleAsyncArrow {
     }
 }
 
+class DynamicDelayArrow extends SimpleAsyncArrow {
+    constructor() {
+        // Number ~> _
+        super(construct(() => {
+            return new ArrowType(new NamedType('Number'), new TopType());
+        }));
+    }
+
+    call(x, p, k, h) {
+        const cancel = () => clearTimeout(timer);
+        const runner = () => {
+            p.advance(cancelerId);
+            k();
+        };
+
+        var timer = setTimeout(runner, x);
+        var cancelerId = p.addCanceler(cancel);
+    }
+
+    equals(that) {
+        return that instanceof DynamicDelayArrow;
+    }
+}
+
 class DelayArrow extends SimpleAsyncArrow {
     constructor(duration) {
         // 'a ~> 'a
