@@ -82,6 +82,18 @@ The built-in types `String`, `Bool`, `Number`, `Elem`, and `Event` are also supp
 Additional user-defined types can be used by name (e.g. `User` or `Post`). Such types
 are treated opaquely by the type checker and will not check the fields of the object.
 
+A **tagged** value can be created in the following way. A tagged value can be queried
+for its tag (e.g. `v.hasTag("foo")`) and can unwrap its value (e.g. `v.value()`).
+
+```javascript
+var arr = function(i) {
+    /* @arrow :: Number ~> <foo: String, bar: Int, baz: _> */
+    if (i % 2 == 0) { return new TaggedValue("foo", "" + i); }
+    if (i % 3 == 0) { return new TaggedValue("bar", i * 27); }
+    else            { return new TaggedValue("baz"); }
+}
+```
+
 If a lifted function does not have an annotation it is assumed to be `_ ~> _`.
 
 A type may also have a set of **constraints** and a set of **exception types**. If the
@@ -96,7 +108,7 @@ var arr = function(x, y) {
 ```
 
 In this example, the constraint set contains the constraint `'a <= Number+String` stating
-that the type variable `'a` must be a subtype of `Number+String`, and the constraint
+that the type variable `'a` must be a subtype of `Number` or `String`, and the constraint
 `'b <= 'a` stating that the return value must be a subtype of the input. The function may
 also throw a value of type `MathError`.
 
@@ -119,8 +131,6 @@ var arr2 = (function(a, b) {
 
 arr1.seq(arr2); // Inferred type is (Number, String, Bool) ~> String
 ```
-
-**TODO** - talk about type registration
 
 ---
 
