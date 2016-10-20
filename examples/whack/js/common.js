@@ -6,7 +6,6 @@ function setup() {
 
 function hit() {
     hits++;
-    console.log(hits);
 }
 
 function showAll() {
@@ -24,9 +23,9 @@ function randomTimeout() {
 }
 
 function won() {
-    console.log('You won!');
+    alert('You won!');
 }
 
 function lost() {
-    console.log('You lost!');
+    alert('You lost!');
 }
