@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Whack-a-Mole</title>
+
+        <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+
+        <style type="text/css">
+            body {
+                padding: 20px;
+                text-align: center;
+            }
+
+            #grid {
+                margin: auto;
+                text-align: center;
+                width: 276px;
+                padding-top: 20px;
+            }
+
+            .hole {
+                float: left;
+                height: 82px;
+                width: 82px;
+                display: inline-block;
+                text-align: center;
+                font-family: Times;
+                font-size: 24pt;
+                margin: 5px;
+            }
+
+            .mole {
+                background-color: red;
+            }
+
+            #grid div:nth-child(3n+1) {
+                clear: both;
+            }
+
+            .btn-secondary {
+                background-color: white;
+                border: 1px solid #dbdbdb;
+            }
+
+            img {
+                width: 82px;
+                height: 82px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <button type="button" id="play" class="btn btn-secondary">Play</button>
+
+        <div id="grid">
+            <div id="hole1" class="hole"><div class="back"><img src="images/mole1.jpg" /></div></div>
+            <div id="hole2" class="hole"><div class="back"><img src="images/mole2.jpg" /></div></div>
+            <div id="hole3" class="hole"><div class="back"><img src="images/mole3.jpg" /></div></div>
+            <div id="hole4" class="hole"><div class="back"><img src="images/mole4.jpg" /></div></div>
+            <div id="hole5" class="hole"><div class="back"><img src="images/mole1.jpg" /></div></div>
+            <div id="hole6" class="hole"><div class="back"><img src="images/mole4.jpg" /></div></div>
+            <div id="hole7" class="hole"><div class="back"><img src="images/mole3.jpg" /></div></div>
+            <div id="hole8" class="hole"><div class="back"><img src="images/mole2.jpg" /></div></div>
+            <div id="hole9" class="hole"><div class="back"><img src="images/mole1.jpg" /></div></div>
+        </div>
+
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+        <script type="text/javascript" src="js/jquery.flip.js"></script>
+        <script type="text/javascript" src="../../dist/parser-legacy.js"></script>
+        <script type="text/javascript" src="../../dist/arrows-legacy.js"></script>
+        <script type="text/javascript" src="js/common.js"></script>
+        <script type="text/javascript" src="js/main.js"></script>
+    </body>
+</html>
