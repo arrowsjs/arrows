@@ -40,6 +40,15 @@ Number.prototype.lift = function() {
   });
 }
 
+Boolean.prototype.lift = function() {
+    var value = this.valueOf();
+
+    return new LiftedArrow(function() {
+        /* @arrow : _ ~> Bool */
+        return value;
+    });
+}
+
 class Arrow {
     constructor(type) {
         numarrows++;
