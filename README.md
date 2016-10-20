@@ -209,8 +209,8 @@ arrow to resume execution will be allowed to complete, and the event listeners i
 other branches will be removed. This arrow returns the result of the branch that resumed
 execution.
 
-The input to the resulting arrow will be fed to each sub-arrow. The resulting arrow is
-asynchronous.
+The input to the resulting arrow will be fed to each sub-arrow (that is, each arrow gets
+a copy of the same input). The resulting arrow is asynchronous.
 
 ```javascript
 Arrow.any([ajaxServer1, ajaxServer2, ajaxServer3]); // The result will be the response of
