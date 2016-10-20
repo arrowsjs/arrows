@@ -196,7 +196,7 @@ Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
 
 // Built-ins
 Arrow.id         = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x);
-Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: 'a ~> <loop: _, halt: _> */ Arrow.loop(null));
+Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: _ ~> <loop: _, halt: _> */ Arrow.loop(null));
 Arrow.repcond    = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ f ? Arrow.loop(x) : Arrow.halt(null));
 Arrow.repcondInv = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ !f ? Arrow.loop(x) : Arrow.halt(null));
 Arrow.throwFalse = () => new LiftedArrow(x => {
