@@ -332,6 +332,55 @@ Arrow.fix(function(a) {
 });
 ```
 
+## API
+
+The following static methods create the combinators described above.
+
+- `Arrow.seq([a1, a2, ...])`
+- `Arrow.all([a1, a2, ...])`
+- `Arrow.any([a1, a2, ...])`
+- `Arrow.try([pa, sa, err])`
+- `Arrow.noemit(a)`
+
+In addition, the following static methods create derived combinators.
+
+- `Arrow.fanout([a1, a2, ...])` creates a combinator similar to All which feeds a copy
+  of the the same input to each arrow.
+- `Arrow.bind(event, a)` creates an arrow which takes an Elem as input, and invokes `a`
+  with an input of `(Elem, Event)` after the event occurs.
+
+Each arrow also carries the following methods to create the combinators described above.
+
+- `a.noemit()`
+- `a1.seq(a2, ...)`
+- `a1.all(a2, ...)`
+- `a1.any(a2, ...)`
+- `pa.try(sa, err)`
+
+In addition, arrows carry the following methods to create derived combinators.
+
+- `a.wait(duration)` will add a Delay arrow after the execution of `a`.
+- `a.after(duration)` will add a Delay arrow before the execution of `a`.
+- `a.triggeredBy(selector, event)` will invoke `a` once the event occurs on the selector.
+  This does not change the input to `a`, only the conditions under which it is invoked.
+- `a.catch(err)` creates a Try combinator with an identity success arrow.
+- `a.split(n)` will add a Split arrow after the execution of `a`.
+- `a.nth(n)` will add an Nth arrow after the execution of `a`.
+- `a.tap(f1, f2, ...)` will sequence a series of functions or arrows together such that
+  each step receives the output of `a` as its argument, and returns the output of `a` at
+  the end of the sequence.
+- `a.on(event, handler)` assumes `a` is an arrow returning an Elem, waits for the event
+  to occur on that value, then invokes `handler` arrow with a `(Elem, Event)` argument.
+- `a.remember()` will execute `a`, then return the original input to the arrow.
+- `a.carry()` will execute `a`, then return a tuple containing both the original input
+  and the output of `a`.
+- `a.repeat()` will assume the return value of `a` is of type `<loop: 'a, halt: 'b>`. If
+  `a` returns a loop tag, then `a` is re-invoked with its unwrapped output value as its
+  new input. Otherwise, the arrow halts with the unwrapped value.
+- `a.forever()` will re-invoke `a` forever in a loop.
+- `a.whileTrue()` will invoke `a` with the same input until `a` returns non-true. Once
+  repetition stops, the arrow returns no useful value.
+
 ## License
 
 Copyright (c) 2016 Eric Fritz
