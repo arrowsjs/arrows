@@ -40,6 +40,15 @@ Number.prototype.lift = function() {
   });
 }
 
+Boolean.prototype.lift = function() {
+    var value = this.valueOf();
+
+    return new LiftedArrow(function() {
+        /* @arrow : _ ~> Bool */
+        return value;
+    });
+}
+
 class Arrow {
     constructor(type) {
         numarrows++;
@@ -187,7 +196,7 @@ Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
 
 // Built-ins
 Arrow.id         = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x);
-Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: 'a ~> <loop: _, halt: _> */ Arrow.loop(null));
+Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: _ ~> <loop: _, halt: _> */ Arrow.loop(null));
 Arrow.repcond    = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ f ? Arrow.loop(x) : Arrow.halt(null));
 Arrow.repcondInv = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ !f ? Arrow.loop(x) : Arrow.halt(null));
 Arrow.throwFalse = () => new LiftedArrow(x => {
@@ -487,6 +496,30 @@ class EventArrow extends SimpleAsyncArrow {
     }
 }
 
+class DynamicDelayArrow extends SimpleAsyncArrow {
+    constructor() {
+        // Number ~> _
+        super(construct(() => {
+            return new ArrowType(new NamedType('Number'), new TopType());
+        }));
+    }
+
+    call(x, p, k, h) {
+        const cancel = () => clearTimeout(timer);
+        const runner = () => {
+            p.advance(cancelerId);
+            k();
+        };
+
+        var timer = setTimeout(runner, x);
+        var cancelerId = p.addCanceler(cancel);
+    }
+
+    equals(that) {
+        return that instanceof DynamicDelayArrow;
+    }
+}
+
 class DelayArrow extends SimpleAsyncArrow {
     constructor(duration) {
         // 'a ~> 'a
@@ -561,9 +594,14 @@ class NthArrow extends Arrow {
     }
 }
 class ComposeError extends Error {
-  constructor(s) {
-    super(s);
-  }
+    constructor(message) {
+        super();
+        this.message = message;
+    }
+
+    toString() {
+        return this.message;
+    }
 }
 
 class Combinator extends Arrow {
@@ -832,9 +870,17 @@ class TryCombinator extends Combinator {
         // callback creates an error value. This allows
         // nesting of error callbacks.
 
+        var handled = false;
+
         this.arrows[0].call(x, p,
             y => this.arrows[1].call(y, p, k, h),
-            z => this.arrows[2].call(z, p, k, h)
+            z => {
+                if (!handled) {
+                    p.cancel();
+                    handled = true;
+                    this.arrows[2].call(z, p, k, h);
+                }
+            }
         );
     }
 

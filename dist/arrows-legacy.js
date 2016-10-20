@@ -56,6 +56,15 @@ Number.prototype.lift = function () {
     });
 };
 
+Boolean.prototype.lift = function () {
+    var value = this.valueOf();
+
+    return new LiftedArrow(function () {
+        /* @arrow : _ ~> Bool */
+        return value;
+    });
+};
+
 var Arrow = (function () {
     function Arrow(type) {
         _classCallCheck(this, Arrow);
@@ -271,7 +280,7 @@ Arrow.id = function () {
 };
 Arrow.reptop = function () {
     return new LiftedArrow(function (x) {
-        return (/* @arrow :: 'a ~> <loop: _, halt: _> */Arrow.loop(null)
+        return (/* @arrow :: _ ~> <loop: _, halt: _> */Arrow.loop(null)
         );
     });
 };
@@ -678,8 +687,44 @@ var EventArrow = (function (_SimpleAsyncArrow2) {
     return EventArrow;
 })(SimpleAsyncArrow);
 
-var DelayArrow = (function (_SimpleAsyncArrow3) {
-    _inherits(DelayArrow, _SimpleAsyncArrow3);
+var DynamicDelayArrow = (function (_SimpleAsyncArrow3) {
+    _inherits(DynamicDelayArrow, _SimpleAsyncArrow3);
+
+    function DynamicDelayArrow() {
+        _classCallCheck(this, DynamicDelayArrow);
+
+        // Number ~> _
+        _get(Object.getPrototypeOf(DynamicDelayArrow.prototype), 'constructor', this).call(this, construct(function () {
+            return new ArrowType(new NamedType('Number'), new TopType());
+        }));
+    }
+
+    _createClass(DynamicDelayArrow, [{
+        key: 'call',
+        value: function call(x, p, k, h) {
+            var cancel = function cancel() {
+                return clearTimeout(timer);
+            };
+            var runner = function runner() {
+                p.advance(cancelerId);
+                k();
+            };
+
+            var timer = setTimeout(runner, x);
+            var cancelerId = p.addCanceler(cancel);
+        }
+    }, {
+        key: 'equals',
+        value: function equals(that) {
+            return that instanceof DynamicDelayArrow;
+        }
+    }]);
+
+    return DynamicDelayArrow;
+})(SimpleAsyncArrow);
+
+var DelayArrow = (function (_SimpleAsyncArrow4) {
+    _inherits(DelayArrow, _SimpleAsyncArrow4);
 
     function DelayArrow(duration) {
         _classCallCheck(this, DelayArrow);
@@ -789,11 +834,19 @@ var NthArrow = (function (_Arrow4) {
 var ComposeError = (function (_Error) {
     _inherits(ComposeError, _Error);
 
-    function ComposeError(s) {
+    function ComposeError(message) {
         _classCallCheck(this, ComposeError);
 
-        _get(Object.getPrototypeOf(ComposeError.prototype), 'constructor', this).call(this, s);
+        _get(Object.getPrototypeOf(ComposeError.prototype), 'constructor', this).call(this);
+        this.message = message;
     }
+
+    _createClass(ComposeError, [{
+        key: 'toString',
+        value: function toString() {
+            return this.message;
+        }
+    }]);
 
     return ComposeError;
 })(Error);
@@ -1150,10 +1203,16 @@ var TryCombinator = (function (_Combinator5) {
             // callback creates an error value. This allows
             // nesting of error callbacks.
 
+            var handled = false;
+
             this.arrows[0].call(x, p, function (y) {
                 return _this5.arrows[1].call(y, p, k, h);
             }, function (z) {
-                return _this5.arrows[2].call(z, p, k, h);
+                if (!handled) {
+                    p.cancel();
+                    handled = true;
+                    _this5.arrows[2].call(z, p, k, h);
+                }
             });
         }
     }, {
