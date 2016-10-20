@@ -253,11 +253,13 @@ If an error is thrown from within the success arrow, the error handler will **no
 invoked. For safety within the success arrow or the error handler, the arrow must be
 nested within another Try combinator.
 
-**TODO** - talk about required type of handler
-
 ```javascript
 Arrow.try(ajax, handle, displayError); // If the Ajax request fails, display an error
 ```
+
+For the arrow to type check, the error handler must accept *at least* the types which
+can be thrown from the protected arrow. It is not possible for an exception value to
+**leak** from the protected arrow past the boundary of the Try combinator.
 
 #### Fix
 
