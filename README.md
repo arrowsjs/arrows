@@ -135,17 +135,23 @@ to return an object of Ajax options. For documentation on available options, see
 [jQuery docs](http://api.jquery.com/jquery.ajax/)). The return value will be formatted
 according to the `dataType` option.
 
-**TODO** - talk about type annotation
+The configuration function must be annotated with two types: the expected input of the
+configuration function, and the expected response from the server. Similarly to lifted
+functions, this is done by adding a comment of the following form.
 
 ```javascript
 var ajax = new AjaxArrow(function(searchTerm) {
+    /**
+     * @conf :: String
+     * @ajax :: [{name: String, price: Number}]
+     */
     return {
-        'url': 'http://api.com/search/' + searchTerm,
+        'url': 'http://api.com/items?q=' + searchTerm,
         'dataType': 'json'
     };
 });
 
-Arrow.seq([ajax, handleJson]);
+Arrow.seq([ajax, displayResponse]);
 ```
 
 #### Split
