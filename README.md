@@ -12,10 +12,6 @@ For literature and examples, see the [Project Homepage](http://arrows.eric-fritz
 
 ## Usage
 
-**TODO**
-
-## API
-
 ### Lifting, Running, and Cancellation
 
 A JavaScript function can be *lifted* into an arrow. This can be done either by creating
