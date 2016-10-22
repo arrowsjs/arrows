@@ -83,14 +83,6 @@ const extractResults = new LiftedArrow(x =>
 //
 // Arrow Composition
 
-// Build an arrow that executes main. Will attempt to execute task,
-// but will abandon execution of task if main makes progress.
-
-const runFirstIfPossible = (task, main) => Arrow.any([
-    task.noemit().remember().seq(main),
-    main,
-]);
-
 const paging = Arrow.fix(a => Arrow.seq([
     // Fetch current page. Load + Store from/to cache where possible.
     Arrow.id()
@@ -106,21 +98,20 @@ const paging = Arrow.fix(a => Arrow.seq([
         extractResults.seq(handle),
     ]),
 
-    runFirstIfPossible(
-        // Prefetch next set of results (may be cache hit if we went backwards in
-        // the result set for some amount of time, should be no-op-ish). Note: We
-        // may want to prefetch prev in some cases as well (user was linked into
-        // the middle of a result set).
-        Arrow.seq([new NthArrow(2), ajaxOrCached]),
+    Arrow.any([
+        // Block until the user clicks the prev button, then cancel any
+        // in-flight pre-fetch of the next page.
+        new NthArrow(1).triggeredBy('#prev', 'click'),
 
-        // Block until button click. Pass next or prev pagination cursor back into
-        // the arrow. The content should change almost immediately because we've
-        // put the next set of results into the cache before this point.
-        Arrow.any([
-            new NthArrow(1).triggeredBy('#prev', 'click'),
-            new NthArrow(2).triggeredBy('#next', 'click'),
-        ])
-    ),
+        // Otherwise, begin a pre-fetch of the next page and wait for a
+        // click of the next button to display it. The pre-fetch will
+        // place the arrow in the cache so that it's immediately available
+        // on the next iteration.
+        new NthArrow(2).seq(Arrow.fanout([
+            ajaxOrCached,
+            Arrow.id().triggeredBy('#next', 'click')
+        ]).noemit().remember())
+    ]),
 
     // Repeat, ad nauseum.
     a,
