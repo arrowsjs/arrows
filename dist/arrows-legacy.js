@@ -1207,6 +1207,9 @@ var TryCombinator = (function (_Combinator5) {
             p.addCanceler(function () {
                 return branch.cancel();
             });
+            branch.addObserver(function () {
+                return p.advance();
+            });
 
             this.arrows[0].call(x, branch, function (y) {
                 return _this5.arrows[1].call(y, p, k, h);

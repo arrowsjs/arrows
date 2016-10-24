@@ -277,6 +277,7 @@ class TryCombinator extends Combinator {
 
         var branch = new Progress(true);
         p.addCanceler(() => branch.cancel());
+        branch.addObserver(() => p.advance());
 
         this.arrows[0].call(x, branch,
             y => this.arrows[1].call(y, p, k, h),
