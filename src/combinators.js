@@ -275,16 +275,14 @@ class TryCombinator extends Combinator {
         // callback creates an error value. This allows
         // nesting of error callbacks.
 
-        var handled = false;
+        var branch = new Progress(true);
+        p.addCanceler(() => branch.cancel());
 
-        this.arrows[0].call(x, p,
+        this.arrows[0].call(x, branch,
             y => this.arrows[1].call(y, p, k, h),
             z => {
-                if (!handled) {
-                    p.cancel();
-                    handled = true;
-                    this.arrows[2].call(z, p, k, h);
-                }
+                branch.cancel();
+                this.arrows[2].call(z, p, k, h);
             }
         );
     }

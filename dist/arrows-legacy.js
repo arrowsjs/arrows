@@ -1203,16 +1203,16 @@ var TryCombinator = (function (_Combinator5) {
             // callback creates an error value. This allows
             // nesting of error callbacks.
 
-            var handled = false;
+            var branch = new Progress(true);
+            p.addCanceler(function () {
+                return branch.cancel();
+            });
 
-            this.arrows[0].call(x, p, function (y) {
+            this.arrows[0].call(x, branch, function (y) {
                 return _this5.arrows[1].call(y, p, k, h);
             }, function (z) {
-                if (!handled) {
-                    p.cancel();
-                    handled = true;
-                    _this5.arrows[2].call(z, p, k, h);
-                }
+                branch.cancel();
+                _this5.arrows[2].call(z, p, k, h);
             });
         }
     }, {
