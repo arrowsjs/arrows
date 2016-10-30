@@ -1,0 +1,44 @@
+Memory
+------
+
+132 arrows
+ 35 annotations
+
+w/o typechecking:  7-13,  9.28
+w/  typechecking: 37-50, 42.06 (2-8, 4.64)
+
+Whack
+-----
+
+314 arrows
+ 85 annotations
+
+w/o typechecking: 10- 19,  13.58
+w/  typechecking: 86-108, 100.98 (5-13, 8.42)
+
+Music
+-----
+
+178 arrows
+ 41 annotations
+
+w/o typechecking:  8-14,  9.82
+w/  typechecking: 58-85, 66.66 (5-11, 7.54)
+
+Pagination
+----------
+
+105 arrows
+ 26 annotations
+
+w/o typechecking:  7-13,  9.14
+w/  typechecking: 45-60, 50.22 (7-21, 10.34)
+
+Sorting
+-------
+
+144 arrows
+ 42 annotations
+
+w/o typechecking:  8-14, 10.02
+w/  typechecking: 47-60, 53.42 (6-12, 8.52)

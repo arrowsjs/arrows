@@ -1,26 +1,28 @@
-var checkHits = new LiftedArrow(function() {
-    /* @arrow _ ~> \ ({}, {_}) */
+// _benchmarkStart(true);
+
+const checkHits = new LiftedArrow(function() {
+    /* @arrow _ ~> _ \ ({}, {_}) */
     if (hits >= 10) {
         throw null;
     }
 });
 
-var random = new LiftedArrow(function() {
+const random = new LiftedArrow(function() {
     /* @arrow :: _ ~> Number */
     return randomTimeout();
 });
 
-var show = new LiftedArrow(function(hole) {
+const show = new LiftedArrow(function(hole) {
     /* @arrow :: Elem ~> _ */
     hole.flip(true);
 });
 
-var hide = new LiftedArrow(function(hole) {
+const hide = new LiftedArrow(function(hole) {
     /* @arrow :: Elem ~> _ */
     hole.flip(false);
 });
 
-var randomDelay = Arrow.seq([
+const randomDelay = Arrow.seq([
     random,
     new DynamicDelayArrow(),
 ]).remember();
@@ -43,7 +45,7 @@ function popup(selector) {
     ]).forever();
 }
 
-var play = Arrow.seq([
+const play = Arrow.seq([
     setup.lift(),
     hideAll.lift(),
 
@@ -77,4 +79,4 @@ function startWhenPressed(elem, arrow) {
     ).forever();
 }
 
-startWhenPressed('#play', play).run();
+_benchmarkResultsOrRun(startWhenPressed('#play', play));

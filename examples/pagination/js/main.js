@@ -1,7 +1,9 @@
+// _benchmarkStart(true);
+
 //
 // Caching
 
-var cache = {};
+const cache = {};
 
 const lookup = new LiftedArrow(key => {
     /* @arrow :: 'a ~> 'b \ ({}, { 'a }) */
@@ -117,8 +119,6 @@ const paging = Arrow.fix(a => Arrow.seq([
     a,
 ]));
 
-const filtering = Arrow.fix(a => new ElemArrow('#filter').on('keyup',
+_benchmarkResultsOrRun(Arrow.fix(a => new ElemArrow('#filter').on('keyup',
     Arrow.fanout([getVal, (0).lift()]).seq(paging.after(400).noemit().any(a))
-));
-
-filtering.run();
+)));

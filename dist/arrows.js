@@ -1,12 +1,57 @@
 var numarrows = 0;
 var numannotations = 0;
-var typecheck = true;
+var annotationParseTime = 0;
 
-function construct(f) {
+var typechecks = 0;
+var typecheckTime = 0;
+
+var started;
+var typecheck = true;
+var benchmark = false;
+var displaychecks = false;
+
+function _benchmarkStart(shouldTypecheck) {
+  benchmark = true;
+  typecheck = shouldTypecheck;
+
+  started = window.performance.now();
+}
+
+function _benchmarkResultsOrRun(/* ...arrows */) {
+    if (benchmark) {
+        let elapsed = window.performance.now() - started;
+
+        console.log('Arrows: ' + numarrows);
+        console.log('Num annotations: ' + numannotations);
+        console.log('Composition time: ' + elapsed + ' (' + annotationParseTime + ')');
+    } else {
+        for (var i = 0; i < arguments.length; i++) {
+            arguments[i].run();
+        }
+    }
+}
+
+function _construct(f) {
     if (typecheck) {
         return f();
     } else {
         return new ArrowType(new TopType(), new TopType());
+    }
+}
+
+function _check(type, value) {
+    if (typecheck) {
+        let start = window.performance.now();
+
+        type.check(value);
+
+        let elapsed = window.performance.now() - start;
+        typechecks++;
+        typecheckTime += elapsed;
+
+        if (displaychecks) {
+          console.log(typechecks + ' checks, ' + typecheckTime + 'ms');
+        }
     }
 }
 
@@ -285,8 +330,8 @@ class LiftedArrow extends Arrow {
             throw new Error('Cannot lift non-function');
         }
 
-        super(construct(() => {
-            numannotations++;
+        super(_construct(() => {
+            var start = window.performance.now();
 
             var s = f.toString();
             var i = s.indexOf('/*');
@@ -316,6 +361,10 @@ class LiftedArrow extends Arrow {
                 annotationCache[c] = parsed;
             }
 
+            var elapsed = window.performance.now() - start;
+            numannotations++;
+            annotationParseTime += elapsed;
+
             var arg = parsed[0];
             var out = parsed[1];
             var ncs = new ConstraintSet([]).addAll(parsed[2][0]);
@@ -338,9 +387,7 @@ class LiftedArrow extends Arrow {
                 var result = this.f(x);
             }
 
-            if (typecheck) {
-                this.type.out.check(result);
-            }
+            _check(this.type.out, result);
         } catch (err) {
             return h(err);
         }
@@ -380,8 +427,8 @@ class SimpleAsyncArrow extends Arrow {
 
 class AjaxArrow extends SimpleAsyncArrow {
     constructor(f) {
-        super(construct(() => {
-            numannotations++;
+        super(_construct(() => {
+            var start = window.performance.now();
 
             var s = f.toString();
             var i = s.indexOf('/*');
@@ -416,6 +463,10 @@ class AjaxArrow extends SimpleAsyncArrow {
                 annotationCache[c] = [conf, resp];
             }
 
+            var elapsed = window.performance.now() - start;
+            numannotations++;
+            annotationParseTime += elapsed;
+
             return new ArrowType(conf[0], resp[0], ncs, err).sanitize();
         }));
 
@@ -443,10 +494,7 @@ class AjaxArrow extends SimpleAsyncArrow {
 
         const fail = h;
         const succ = x => {
-            if (typecheck) {
-                this.type.out.check(x);
-            }
-
+            _check(this.type.out, x);
             k(x);
         };
 
@@ -467,7 +515,7 @@ class AjaxArrow extends SimpleAsyncArrow {
 class EventArrow extends SimpleAsyncArrow {
     constructor(name) {
         // Elem ~> Event
-        super(construct(() => new ArrowType(new NamedType('Elem'), new NamedType('Event'))));
+        super(_construct(() => new ArrowType(new NamedType('Elem'), new NamedType('Event'))));
         this.name = name;
     }
 
@@ -499,7 +547,7 @@ class EventArrow extends SimpleAsyncArrow {
 class DynamicDelayArrow extends SimpleAsyncArrow {
     constructor() {
         // Number ~> _
-        super(construct(() => {
+        super(_construct(() => {
             return new ArrowType(new NamedType('Number'), new TopType());
         }));
     }
@@ -523,7 +571,7 @@ class DynamicDelayArrow extends SimpleAsyncArrow {
 class DelayArrow extends SimpleAsyncArrow {
     constructor(duration) {
         // 'a ~> 'a
-        super(construct(() => {
+        super(_construct(() => {
             var alpha = ParamType.fresh();
             return new ArrowType(alpha, alpha);
         }));
@@ -553,7 +601,7 @@ class DelayArrow extends SimpleAsyncArrow {
 
 class SplitArrow extends Arrow {
     constructor(n) {
-        super(construct(() => {
+        super(_construct(() => {
             var arg = ParamType.fresh();
             var out = Array.create(n, arg);
 
@@ -575,7 +623,7 @@ class SplitArrow extends Arrow {
 
 class NthArrow extends Arrow {
     constructor(n) {
-        super(construct(() => {
+        super(_construct(() => {
             var arg = Array.create(n).map(() => ParamType.fresh());
             var out = arg[n - 1];
 
@@ -625,7 +673,7 @@ class Combinator extends Arrow {
 
 class NoEmitCombinator extends Combinator {
     constructor(f) {
-        super(construct(() => {
+        super(_construct(() => {
             return f.type;
         }), [f]);
     }
@@ -650,7 +698,7 @@ class NoEmitCombinator extends Combinator {
 
 class SeqCombinator extends Combinator {
     constructor(arrows) {
-        super(construct(() => {
+        super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -701,7 +749,7 @@ class SeqCombinator extends Combinator {
 
 class AllCombinator extends Combinator {
     constructor(arrows) {
-        super(construct(() => {
+        super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -753,7 +801,7 @@ class AllCombinator extends Combinator {
 
 class AnyCombinator extends Combinator {
     constructor(arrows) {
-        super(construct(() => {
+        super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -824,7 +872,7 @@ class AnyCombinator extends Combinator {
 
 class TryCombinator extends Combinator {
     constructor(a, s, f) {
-        super(construct(() => {
+        super(_construct(() => {
             var sta = sanitizeTypes([a])[0];
             var sts = sanitizeTypes([s])[0];
             var stf = sanitizeTypes([f])[0];
@@ -939,7 +987,7 @@ Arrow.fix = function(ctor) {
 
 class ProxyArrow extends Arrow {
     constructor(arg, out) {
-        super(construct(() => {
+        super(_construct(() => {
             return new ArrowType(arg, out);
         }));
 

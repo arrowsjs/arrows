@@ -11,7 +11,7 @@ cp -r website/* temp
 cp -r dist temp
 cp -r examples temp
 
-# Transpile example code to work in older browsers.
+# Transpile example code to work in older browsers
 find temp/examples -type f | grep '.js$' | while read line; do
     babel "$line" > "$line.temp"
     mv "$line.temp" "$line"

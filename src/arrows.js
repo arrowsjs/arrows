@@ -1,12 +1,57 @@
 var numarrows = 0;
 var numannotations = 0;
-var typecheck = true;
+var annotationParseTime = 0;
 
-function construct(f) {
+var typechecks = 0;
+var typecheckTime = 0;
+
+var started;
+var typecheck = true;
+var benchmark = false;
+var displaychecks = false;
+
+function _benchmarkStart(shouldTypecheck) {
+  benchmark = true;
+  typecheck = shouldTypecheck;
+
+  started = window.performance.now();
+}
+
+function _benchmarkResultsOrRun(/* ...arrows */) {
+    if (benchmark) {
+        let elapsed = window.performance.now() - started;
+
+        console.log('Arrows: ' + numarrows);
+        console.log('Num annotations: ' + numannotations);
+        console.log('Composition time: ' + elapsed + ' (' + annotationParseTime + ')');
+    } else {
+        for (var i = 0; i < arguments.length; i++) {
+            arguments[i].run();
+        }
+    }
+}
+
+function _construct(f) {
     if (typecheck) {
         return f();
     } else {
         return new ArrowType(new TopType(), new TopType());
+    }
+}
+
+function _check(type, value) {
+    if (typecheck) {
+        let start = window.performance.now();
+
+        type.check(value);
+
+        let elapsed = window.performance.now() - start;
+        typechecks++;
+        typecheckTime += elapsed;
+
+        if (displaychecks) {
+          console.log(typechecks + ' checks, ' + typecheckTime + 'ms');
+        }
     }
 }
 

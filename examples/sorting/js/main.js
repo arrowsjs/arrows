@@ -1,3 +1,5 @@
+// _benchmarkStart(true);
+
 function initSort() {
     /* @arrow :: _ ~> (Number, Bool, Number) */
     return [NUM_ITEMS, false, 0];
@@ -5,7 +7,7 @@ function initSort() {
 
 function shuffle(i) {
     /* @arrow :: Number ~> <loop: Number, halt: _> */
-    var j = Math.floor(Math.random() * (i + 1));
+    let j = Math.floor(Math.random() * (i + 1));
 
     $('#sort-div').children().eq(NUM_ITEMS - i - 1).addClass('swapping');
     $('#sort-div').children().eq(NUM_ITEMS - j - 1).addClass('swapping');
@@ -15,8 +17,8 @@ function shuffle(i) {
 
 function sort(i, hasInversion, numSorted) {
     /* @arrow :: (Number, Bool, Number) ~> <loop: (Number, Bool, Number), halt: _> */
-    var n1 = $('#sort-div').children().eq(NUM_ITEMS - i);
-    var n2 = $('#sort-div').children().eq(NUM_ITEMS - i + 1);
+    let n1 = $('#sort-div').children().eq(NUM_ITEMS - i);
+    let n2 = $('#sort-div').children().eq(NUM_ITEMS - i + 1);
     var inverted = false;
 
     if (parseInt(n1.css('width')) > parseInt(n2.css('width'))) {
@@ -56,8 +58,7 @@ function startWhenPressed(elem, arrow) {
     ])).forever();
 }
 
-var doSort = animate(initSort.lift(), sort.lift());
-var doShuffle = animate((NUM_ITEMS - 1).lift(), shuffle.lift());
+const doSort = animate(initSort.lift(), sort.lift());
+const doShuffle = animate((NUM_ITEMS - 1).lift(), shuffle.lift());
 
-startWhenPressed('#sort', doSort).run();
-startWhenPressed('#shuffle', doShuffle).run();
+_benchmarkResultsOrRun(startWhenPressed('#sort', doSort), startWhenPressed('#shuffle', doShuffle));

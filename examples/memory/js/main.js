@@ -1,6 +1,8 @@
-var selectOne = Arrow.bind('click', select.lift()).whileTrue();
+// _benchmarkStart(true);
 
-var round = Arrow.id()
+const selectOne = Arrow.bind('click', select.lift()).whileTrue();
+
+const round = Arrow.id()
     .tap(clear)
     .tap(selectOne)
     .tap(selectOne)
@@ -10,16 +12,16 @@ var round = Arrow.id()
     .tap(freeze)
     .wait(500);
 
-var game = Arrow.id()
+const game = Arrow.id()
     .tap(round)
     .seq(cardsLeft.lift())
     .whileTrue();
 
-var play = setup.lift()
+const play = setup.lift()
     .wait(1000)
     .seq(game)
     .seq(won.lift());
-    
+
 function setEnabled(enabled) {
     return new LiftedArrow(button => {
         /* @arrow :: Elem ~> _ */
@@ -35,4 +37,4 @@ function startWhenPressed(elem, arrow) {
     ).forever();
 }
 
-startWhenPressed('#play', play).run();
+_benchmarkResultsOrRun(startWhenPressed('#play', play));

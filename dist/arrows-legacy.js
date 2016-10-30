@@ -14,13 +14,58 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var numarrows = 0;
 var numannotations = 0;
-var typecheck = true;
+var annotationParseTime = 0;
 
-function construct(f) {
+var typechecks = 0;
+var typecheckTime = 0;
+
+var started;
+var typecheck = true;
+var benchmark = false;
+var displaychecks = false;
+
+function _benchmarkStart(shouldTypecheck) {
+    benchmark = true;
+    typecheck = shouldTypecheck;
+
+    started = window.performance.now();
+}
+
+function _benchmarkResultsOrRun() /* ...arrows */{
+    if (benchmark) {
+        var elapsed = window.performance.now() - started;
+
+        console.log('Arrows: ' + numarrows);
+        console.log('Num annotations: ' + numannotations);
+        console.log('Composition time: ' + elapsed + ' (' + annotationParseTime + ')');
+    } else {
+        for (var i = 0; i < arguments.length; i++) {
+            arguments[i].run();
+        }
+    }
+}
+
+function _construct(f) {
     if (typecheck) {
         return f();
     } else {
         return new ArrowType(new TopType(), new TopType());
+    }
+}
+
+function _check(type, value) {
+    if (typecheck) {
+        var start = window.performance.now();
+
+        type.check(value);
+
+        var elapsed = window.performance.now() - start;
+        typechecks++;
+        typecheckTime += elapsed;
+
+        if (displaychecks) {
+            console.log(typechecks + ' checks, ' + typecheckTime + 'ms');
+        }
     }
 }
 
@@ -414,8 +459,8 @@ var LiftedArrow = (function (_Arrow) {
             throw new Error('Cannot lift non-function');
         }
 
-        _get(Object.getPrototypeOf(LiftedArrow.prototype), 'constructor', this).call(this, construct(function () {
-            numannotations++;
+        _get(Object.getPrototypeOf(LiftedArrow.prototype), 'constructor', this).call(this, _construct(function () {
+            var start = window.performance.now();
 
             var s = f.toString();
             var i = s.indexOf('/*');
@@ -445,6 +490,10 @@ var LiftedArrow = (function (_Arrow) {
                 annotationCache[c] = parsed;
             }
 
+            var elapsed = window.performance.now() - start;
+            numannotations++;
+            annotationParseTime += elapsed;
+
             var arg = parsed[0];
             var out = parsed[1];
             var ncs = new ConstraintSet([]).addAll(parsed[2][0]);
@@ -469,9 +518,7 @@ var LiftedArrow = (function (_Arrow) {
                     var result = this.f(x);
                 }
 
-                if (typecheck) {
-                    this.type.out.check(result);
-                }
+                _check(this.type.out, result);
             } catch (err) {
                 return h(err);
             }
@@ -541,8 +588,8 @@ var AjaxArrow = (function (_SimpleAsyncArrow) {
     function AjaxArrow(f) {
         _classCallCheck(this, AjaxArrow);
 
-        _get(Object.getPrototypeOf(AjaxArrow.prototype), 'constructor', this).call(this, construct(function () {
-            numannotations++;
+        _get(Object.getPrototypeOf(AjaxArrow.prototype), 'constructor', this).call(this, _construct(function () {
+            var start = window.performance.now();
 
             var s = f.toString();
             var i = s.indexOf('/*');
@@ -577,6 +624,10 @@ var AjaxArrow = (function (_SimpleAsyncArrow) {
                 annotationCache[c] = [conf, resp];
             }
 
+            var elapsed = window.performance.now() - start;
+            numannotations++;
+            annotationParseTime += elapsed;
+
             return new ArrowType(conf[0], resp[0], ncs, err).sanitize();
         }));
 
@@ -608,10 +659,7 @@ var AjaxArrow = (function (_SimpleAsyncArrow) {
 
             var fail = h;
             var succ = function succ(x) {
-                if (typecheck) {
-                    _this2.type.out.check(x);
-                }
-
+                _check(_this2.type.out, x);
                 k(x);
             };
 
@@ -648,7 +696,7 @@ var EventArrow = (function (_SimpleAsyncArrow2) {
         _classCallCheck(this, EventArrow);
 
         // Elem ~> Event
-        _get(Object.getPrototypeOf(EventArrow.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(EventArrow.prototype), 'constructor', this).call(this, _construct(function () {
             return new ArrowType(new NamedType('Elem'), new NamedType('Event'));
         }));
         this.name = name;
@@ -694,7 +742,7 @@ var DynamicDelayArrow = (function (_SimpleAsyncArrow3) {
         _classCallCheck(this, DynamicDelayArrow);
 
         // Number ~> _
-        _get(Object.getPrototypeOf(DynamicDelayArrow.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(DynamicDelayArrow.prototype), 'constructor', this).call(this, _construct(function () {
             return new ArrowType(new NamedType('Number'), new TopType());
         }));
     }
@@ -730,7 +778,7 @@ var DelayArrow = (function (_SimpleAsyncArrow4) {
         _classCallCheck(this, DelayArrow);
 
         // 'a ~> 'a
-        _get(Object.getPrototypeOf(DelayArrow.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(DelayArrow.prototype), 'constructor', this).call(this, _construct(function () {
             var alpha = ParamType.fresh();
             return new ArrowType(alpha, alpha);
         }));
@@ -772,7 +820,7 @@ var SplitArrow = (function (_Arrow3) {
     function SplitArrow(n) {
         _classCallCheck(this, SplitArrow);
 
-        _get(Object.getPrototypeOf(SplitArrow.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(SplitArrow.prototype), 'constructor', this).call(this, _construct(function () {
             var arg = ParamType.fresh();
             var out = Array.create(n, arg);
 
@@ -804,7 +852,7 @@ var NthArrow = (function (_Arrow4) {
     function NthArrow(n) {
         _classCallCheck(this, NthArrow);
 
-        _get(Object.getPrototypeOf(NthArrow.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(NthArrow.prototype), 'constructor', this).call(this, _construct(function () {
             var arg = Array.create(n).map(function () {
                 return ParamType.fresh();
             });
@@ -890,7 +938,7 @@ var NoEmitCombinator = (function (_Combinator) {
     function NoEmitCombinator(f) {
         _classCallCheck(this, NoEmitCombinator);
 
-        _get(Object.getPrototypeOf(NoEmitCombinator.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(NoEmitCombinator.prototype), 'constructor', this).call(this, _construct(function () {
             return f.type;
         }), [f]);
     }
@@ -927,7 +975,7 @@ var SeqCombinator = (function (_Combinator2) {
     function SeqCombinator(arrows) {
         _classCallCheck(this, SeqCombinator);
 
-        _get(Object.getPrototypeOf(SeqCombinator.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(SeqCombinator.prototype), 'constructor', this).call(this, _construct(function () {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -995,7 +1043,7 @@ var AllCombinator = (function (_Combinator3) {
     function AllCombinator(arrows) {
         _classCallCheck(this, AllCombinator);
 
-        _get(Object.getPrototypeOf(AllCombinator.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(AllCombinator.prototype), 'constructor', this).call(this, _construct(function () {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -1060,7 +1108,7 @@ var AnyCombinator = (function (_Combinator4) {
     function AnyCombinator(arrows) {
         _classCallCheck(this, AnyCombinator);
 
-        _get(Object.getPrototypeOf(AnyCombinator.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(AnyCombinator.prototype), 'constructor', this).call(this, _construct(function () {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -1149,7 +1197,7 @@ var TryCombinator = (function (_Combinator5) {
     function TryCombinator(a, s, f) {
         _classCallCheck(this, TryCombinator);
 
-        _get(Object.getPrototypeOf(TryCombinator.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(TryCombinator.prototype), 'constructor', this).call(this, _construct(function () {
             var sta = sanitizeTypes([a])[0];
             var sts = sanitizeTypes([s])[0];
             var stf = sanitizeTypes([f])[0];
@@ -1283,7 +1331,7 @@ var ProxyArrow = (function (_Arrow6) {
     function ProxyArrow(arg, out) {
         _classCallCheck(this, ProxyArrow);
 
-        _get(Object.getPrototypeOf(ProxyArrow.prototype), 'constructor', this).call(this, construct(function () {
+        _get(Object.getPrototypeOf(ProxyArrow.prototype), 'constructor', this).call(this, _construct(function () {
             return new ArrowType(arg, out);
         }));
 

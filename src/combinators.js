@@ -30,7 +30,7 @@ class Combinator extends Arrow {
 
 class NoEmitCombinator extends Combinator {
     constructor(f) {
-        super(construct(() => {
+        super(_construct(() => {
             return f.type;
         }), [f]);
     }
@@ -55,7 +55,7 @@ class NoEmitCombinator extends Combinator {
 
 class SeqCombinator extends Combinator {
     constructor(arrows) {
-        super(construct(() => {
+        super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -106,7 +106,7 @@ class SeqCombinator extends Combinator {
 
 class AllCombinator extends Combinator {
     constructor(arrows) {
-        super(construct(() => {
+        super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -158,7 +158,7 @@ class AllCombinator extends Combinator {
 
 class AnyCombinator extends Combinator {
     constructor(arrows) {
-        super(construct(() => {
+        super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
             try {
@@ -229,7 +229,7 @@ class AnyCombinator extends Combinator {
 
 class TryCombinator extends Combinator {
     constructor(a, s, f) {
-        super(construct(() => {
+        super(_construct(() => {
             var sta = sanitizeTypes([a])[0];
             var sts = sanitizeTypes([s])[0];
             var stf = sanitizeTypes([f])[0];
@@ -344,7 +344,7 @@ Arrow.fix = function(ctor) {
 
 class ProxyArrow extends Arrow {
     constructor(arg, out) {
-        super(construct(() => {
+        super(_construct(() => {
             return new ArrowType(arg, out);
         }));
 

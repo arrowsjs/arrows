@@ -1,3 +1,5 @@
+// _benchmarkStart(true);
+
 const init = new LiftedArrow(i => {
     /** @arrow :: Number ~> _ */
     $('#music-title').text(songNames[i]);
@@ -95,10 +97,6 @@ const onPause = getSong.seq(pause).remember().tap(showPlay).seq(Arrow.any([
     changeSong
 ])).triggeredBy('#music-pause', 'click');
 
-const player = (0).lift().tap(showPause).seq(Arrow.fix(a =>
+_benchmarkResultsOrRun((0).lift().tap(showPause).seq(Arrow.fix(a =>
     Arrow.any([loadAndPlaySong.seq(incr), changeSong, onPause]).seq(a)
-));
-
-$(document).ready(() => {
-    player.run();
-});
+)));
