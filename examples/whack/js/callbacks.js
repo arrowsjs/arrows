@@ -1,4 +1,4 @@
-var playing = true;
+var playing = 0;
 
 function reset() {
     showAll();
