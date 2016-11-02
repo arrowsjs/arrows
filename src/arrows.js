@@ -215,6 +215,15 @@ class Arrow {
         return Arrow.fix(a => this.wait(0).seq(Arrow.try(Arrow.repeatTail(), a, Arrow.id())));
     }
 
+    times(n) {
+        let rep = new LiftedArrow((x, y) => {
+          /* @arrow :: ('a, 'b) ~> <loop: 'a, halt: 'b> */
+          return (--n > 0) ? Arrow.loop(x) : Arrow.halt(y);
+        });
+
+        return this.carry().seq(rep).repeat();
+    }
+
     forever() {
         return this.seq(Arrow.reptop()).repeat();
     }

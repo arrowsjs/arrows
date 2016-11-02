@@ -270,6 +270,16 @@ var Arrow = (function () {
             });
         }
     }, {
+        key: 'times',
+        value: function times(n) {
+            var rep = new LiftedArrow(function (x, y) {
+                /* @arrow :: ('a, 'b) ~> <loop: 'a, halt: 'b> */
+                return --n > 0 ? Arrow.loop(x) : Arrow.halt(y);
+            });
+
+            return this.carry().seq(rep).repeat();
+        }
+    }, {
         key: 'forever',
         value: function forever() {
             return this.seq(Arrow.reptop()).repeat();

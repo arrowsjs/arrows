@@ -377,6 +377,8 @@ In addition, arrows carry the following methods to create derived combinators.
 - `a.repeat()` will assume the return value of `a` is of type `<loop: 'a, halt: 'b>`. If
   `a` returns a loop tag, then `a` is re-invoked with its unwrapped output value as its
   new input. Otherwise, the arrow halts with the unwrapped value.
+- `a.times(n)` will execute `a` with the same input `n` times (where `n` > 0). The value
+  resulting from this arrow is the _last_ output of `a`.
 - `a.forever()` will re-invoke `a` forever in a loop.
 - `a.whileTrue()` will invoke `a` with the same input until `a` returns non-true. Once
   repetition stops, the arrow returns no useful value.
