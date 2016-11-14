@@ -145,9 +145,9 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                 annotationCache[c] = [conf, resp];
             }
 
-			var elapsed = window.performance.now() - start;
--           numannotations++;
-			annotationParseTime += elapsed;
+            var elapsed = window.performance.now() - start;
+            numannotations++;
+            annotationParseTime += elapsed;
 
             return new ArrowType(conf[0], resp[0], ncs, err).sanitize();
         }));
