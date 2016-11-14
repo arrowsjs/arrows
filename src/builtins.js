@@ -1,5 +1,8 @@
 var annotationCache = {};
 
+// Convenience
+Arrow.db = (f, db) => new DBArrow(f, db);
+
 class LiftedArrow extends Arrow {
     constructor(f) {
         if (!(f instanceof Function)) {
@@ -101,10 +104,13 @@ class SimpleAsyncArrow extends Arrow {
     }
 }
 
-class AjaxArrow extends SimpleAsyncArrow {
-    constructor(f) {
-        super(_construct(() => {
-            var start = window.performance.now();
+
+// Simple Asynchronous Arrow that takes in a config object
+
+class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
+	constructor(f) {
+        super(construct(() => {
+            numannotations++;
 
             var s = f.toString();
             var i = s.indexOf('/*');
@@ -124,7 +130,7 @@ class AjaxArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
                 } catch (err) {
-                  throw new ComposeError(`Ajax config function does not contain a parseable @conf annotation.\n${err.message}\n`)
+                  throw `Config function does not contain a parseable @conf annotation.\n${err.message}\n`
                 }
 
                 try {
@@ -133,22 +139,20 @@ class AjaxArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
                 } catch (err) {
-                  throw new ComposeError(`Ajax config function does not contain a parseable @resp annotation.\n${err.message}\n`)
+                  throw `Config function does not contain a parseable @resp annotation.\n${err.message}\n`
                 }
 
                 annotationCache[c] = [conf, resp];
             }
-
-            var elapsed = window.performance.now() - start;
-            numannotations++;
-            annotationParseTime += elapsed;
 
             return new ArrowType(conf[0], resp[0], ncs, err).sanitize();
         }));
 
         this.c = f;
     }
+}
 
+class AjaxArrow extends SimpleConfigBasedAsyncArrow {
     call(x, p, k, h) {
         // If the function has more than one parameter and we have
         // an array argument, spread the elements. Else, just call
@@ -185,6 +189,51 @@ class AjaxArrow extends SimpleAsyncArrow {
     equals(that) {
         // TODO - deep comparison of objects
         return that instanceof AjaxArrow && this.config === that.config;
+    }
+}
+
+class DBArrow extends SimpleConfigBasedAsyncArrow {
+    constructor(f, db) {
+        super(f);
+        this.db = db;
+    }
+
+    call(x, p, k, h) {
+        if (x && x.constructor === Array && this.c.length > 1) {
+            var conf = this.c.apply(null, x);
+        } else {
+            var conf = this.c(x);
+        }
+
+        let abort = false;
+
+        const cancel = () => {
+            abort = true;
+        };
+
+        const fail = h;
+        const succ = x => {
+            _check(this.type.out, x);
+            k(x);
+        };
+        this.db.query(conf.query, conf.param, function (err, rows) {
+            if (err) {
+                if (!abort) {
+                    p.advance(cancelerId);
+                    fail(err);
+                }
+            } else {
+                if (!abort) {
+                    p.advance(cancelerId);
+                    succ(rows);
+                }
+            }
+        });
+        var cancelerId = p.addCanceler(cancel);
+    }
+
+    equals(that) {
+        return that instanceof DBArrow && this.config === that.config;
     }
 }
 
