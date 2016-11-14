@@ -110,7 +110,7 @@ class SimpleAsyncArrow extends Arrow {
 class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
 	constructor(f) {
         super(construct(() => {
-            numannotations++;
+            var start = window.performance.now();
 
             var s = f.toString();
             var i = s.indexOf('/*');
@@ -118,7 +118,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
             var c = s.substring(i + 2, j);
 
             var ncs = new ConstraintSet([]);
-            var err = [new NamedType('AjaxError')];
+            var err = [new NamedType('ConfigError')];
 
             if (annotationCache[c] !== undefined) {
                 var conf = annotationCache[c][0];
@@ -130,7 +130,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
                 } catch (err) {
-                  throw `Config function does not contain a parseable @conf annotation.\n${err.message}\n`
+                  throw new ComposeError(`Config function does not contain a parseable @conf annotation.\n${err.message}\n`);
                 }
 
                 try {
@@ -139,11 +139,15 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
                 } catch (err) {
-                  throw `Config function does not contain a parseable @resp annotation.\n${err.message}\n`
+                  throw new ComposeError(`Config function does not contain a parseable @resp annotation.\n${err.message}\n`);
                 }
 
                 annotationCache[c] = [conf, resp];
             }
+
+			var elapsed = window.performance.now() - start;
+-           numannotations++;
+			annotationParseTime += elapsed;
 
             return new ArrowType(conf[0], resp[0], ncs, err).sanitize();
         }));
