@@ -252,17 +252,23 @@ Arrow.bind   = (event, a) => new NamedArrow('bind(' + event + ', {0})', Arrow.se
 Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
 
 // Built-ins
-Arrow.id         = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x);
-Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: _ ~> <loop: _, halt: _> */ Arrow.loop(null));
-Arrow.repcond    = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ f ? Arrow.loop(x) : Arrow.halt(null));
-Arrow.repcondInv = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ !f ? Arrow.loop(x) : Arrow.halt(null));
+Arrow.id         = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x).named('id');
+Arrow.log        = () => new LiftedArrow(x => {
+    /* @arrow :: 'a ~> 'a */
+    console.log(x);
+    return x;
+}).named('log');
+
 Arrow.throwFalse = () => new LiftedArrow(x => {
   /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
   if (x) {
     throw x;
   }
-});
+}).named('throwFalse');
 
+// Repetition helpers
+Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: _ ~> <loop: _, halt: _> */ Arrow.loop(null));
+Arrow.repcond    = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ f ? Arrow.loop(x) : Arrow.halt(null));
 Arrow.repeatTail = () => new LiftedArrow(x => {
     /* @arrow :: <loop: 'a, halt: 'b> ~> 'a \ ({}, {'b}) */
     if (x.hasTag('loop')) {
@@ -270,12 +276,6 @@ Arrow.repeatTail = () => new LiftedArrow(x => {
     } else {
         throw x.value();
     }
-});
-
-Arrow.log = () => new LiftedArrow(x => {
-    /* @arrow :: 'a ~> 'a */
-    console.log(x);
-    return x;
 });
 
 class TaggedValue {
