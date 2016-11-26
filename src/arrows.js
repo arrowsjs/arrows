@@ -108,10 +108,6 @@ class Arrow {
         throw new Error('Equals undefined')
     }
 
-    toString() {
-        return this.constructor.name + ' :: ' + this.type.toString();
-    }
-
     isAsync() {
         return false;
     }
@@ -145,6 +141,10 @@ class Arrow {
     }
 
     // Convenience API
+
+    named(name) {
+        return new NamedArrow(name, this);
+    }
 
     lift() {
       return this;
@@ -189,30 +189,29 @@ class Arrow {
     }
 
     tap(/* ...functions */) {
-      var a = this;
-      for (var i = 0; i < arguments.length; i++) {
-        a = a.seq(arguments[i].lift().remember());
-      }
+        var sec = getNonNull(Array.copy(arguments)).map(a => a.lift());
+        var all = [this].concat(sec);
+        var rem = [this].concat(sec.map(a => a.remember()));
 
-      return a;
+        return new NamedArrow('tap(' + all.map(a => a.toString()).join(', ' ) + ')', Arrow.seq(rem));
     }
 
     on(name, handler) {
-        return this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler);
+        return new NamedArrow('on(' + name + ', {0})', this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler), [handler]);
     }
 
     remember() {
-        return this.carry().nth(1);
+        return new NamedArrow('remember({0})', this.carry().nth(1), [this]);
     }
 
     carry() {
-        return new SplitArrow(2).seq(Arrow.id().all(this));
+        return new NamedArrow('carry({0})', new SplitArrow(2).seq(Arrow.id().all(this)), [this]);
     }
 
     // Repeating
 
     repeat() {
-        return Arrow.fix(a => this.wait(0).seq(Arrow.try(Arrow.repeatTail(), a, Arrow.id())));
+        return new NamedArrow('repeat({0})', Arrow.fix(a => this.wait(0).seq(Arrow.try(Arrow.repeatTail(), a, Arrow.id()))), [this]);
     }
 
     times(n) {
@@ -221,15 +220,15 @@ class Arrow {
           return (--n > 0) ? Arrow.loop(x) : Arrow.halt(y);
         });
 
-        return this.carry().seq(rep).repeat();
+        return new NamedArrow('times(' + n + ', {0})', this.carry().seq(rep).repeat(), [this]);
     }
 
     forever() {
-        return this.seq(Arrow.reptop()).repeat();
+        return new NamedArrow('forever({0})', this.seq(Arrow.reptop()).repeat(), [this]);
     }
 
     whileTrue() {
-        return this.carry().seq(Arrow.repcond()).repeat();
+        return new NamedArrow('whileTrue({0})', this.carry().seq(Arrow.repcond()).repeat(), [this]);
     }
 }
 
@@ -241,11 +240,15 @@ Arrow.seq    = arrows    => new SeqCombinator(arrows);
 Arrow.any    = arrows    => new AnyCombinator(arrows);
 Arrow.all    = arrows    => new AllCombinator(arrows);
 Arrow.try    = (a, s, f) => new TryCombinator(a, s, f);
-Arrow.fanout = arrows    => new SplitArrow(arrows.length).seq(Arrow.all(arrows));
+Arrow.fanout = arrows    => {
+    arrows = getNonNull(arrows);
+    var result = new SplitArrow(arrows.length).seq(Arrow.all(arrows));
+    return new NamedArrow('fanout(' + arrows.map(a => a.toString()).join(', ' ) + ')', result, arrows);
+}
 
 // Convenience
 Arrow.repeat = a          => a.repeat();
-Arrow.bind   = (event, a) => Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]);
+Arrow.bind   = (event, a) => new NamedArrow('bind(' + event + ', {0})', Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
 Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
 
 // Built-ins

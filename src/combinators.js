@@ -15,6 +15,10 @@ class Combinator extends Arrow {
         this.arrows = arrows;
     }
 
+    toString() {
+        return this.constructor.name + '(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
+    }
+
     isAsync() {
         return this.arrows.some(a => a.isAsync());
     }
@@ -28,11 +32,37 @@ class Combinator extends Arrow {
     }
 }
 
-class NoEmitCombinator extends Combinator {
-    constructor(f) {
+class NamedArrow extends Combinator {
+    constructor(name, a, args) {
         super(_construct(() => {
-            return f.type;
-        }), [f]);
+            return a.type;
+        }), [a]);
+
+        this.name = format(name, (args || []).map(a => a.toString()));
+    }
+
+    toString() {
+        return this.name + ' :: ' + this.arrows[0].type.toString();
+    }
+
+    call(x, p, k, h) {
+        this.arrows[0].call(x, p, k, h);
+    }
+
+    isAsync() {
+        return this.arrows[0].isAsync();
+    }
+}
+
+class NoEmitCombinator extends Combinator {
+    constructor(a) {
+        super(_construct(() => {
+            return a.type;
+        }), [a]);
+    }
+
+    toString() {
+        return 'noemit(' + this.arrows[0].toString() + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -93,6 +123,10 @@ class SeqCombinator extends Combinator {
        }), arrows);
     }
 
+    toString() {
+        return 'seq(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         const rec = (y, [head, ...tail]) => {
             if (head === undefined) {
@@ -141,6 +175,10 @@ class AllCombinator extends Combinator {
               throw new ComposeError(message + '\n\tInput => All(' + sty.join(', ') + ')\n\tError => ' + err);
             }
        }), arrows);
+    }
+
+    toString() {
+        return 'all(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -195,6 +233,10 @@ class AnyCombinator extends Combinator {
               throw new ComposeError(message + '\n\tInput => Any(' + sty.join(', ') + ')\n\tError => ' + err);
             }
        }), arrows);
+    }
+
+    toString() {
+        return 'any(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -274,6 +316,10 @@ class TryCombinator extends Combinator {
               throw new ComposeError(message + '\n\tInput => Try(' + [sta, sts, stf].join(', ') + ')\n\tError => ' + err);
             }
         }), [a, s, f]);
+    }
+
+    toString() {
+        return 'try(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -357,6 +403,14 @@ class ProxyArrow extends Arrow {
         this.arrow = null;
     }
 
+    toString() {
+        if (this.arrow != null) {
+            return 'omega :: ' + this.arrow.type.toString();
+        }
+
+        return 'omega :: ???';
+    }
+
     freeze(arrow) {
         this.arrow = arrow;
     }
@@ -400,4 +454,10 @@ function getNonNull(arrows) {
     }
 
     throw new ComposeError('Combinator contains no non-null arguments.');
+}
+
+function format(format, args) {
+    return format.replace(/{(\d+)}/g, function(match, number) {
+        return typeof args[number] != 'undefined' ? args[number] : match;
+    });
 }

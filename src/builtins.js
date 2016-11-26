@@ -51,6 +51,10 @@ class LiftedArrow extends Arrow {
         this.f = f;
     }
 
+    toString() {
+        return 'lift :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         try {
             // If the function has more than one parameter and we have
@@ -84,6 +88,10 @@ class ElemArrow extends LiftedArrow {
         });
 
         this.selector = selector;
+    }
+
+    toString() {
+        return 'elem :: ' + this.type.toString();
     }
 
     equals(that) {
@@ -149,6 +157,10 @@ class AjaxArrow extends SimpleAsyncArrow {
         this.c = f;
     }
 
+    toString() {
+        return 'ajax :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         // If the function has more than one parameter and we have
         // an array argument, spread the elements. Else, just call
@@ -195,6 +207,10 @@ class EventArrow extends SimpleAsyncArrow {
         this.name = name;
     }
 
+    toString() {
+        return 'event(' + this.name + ') :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         let abort = false;
 
@@ -228,6 +244,10 @@ class DynamicDelayArrow extends SimpleAsyncArrow {
         }));
     }
 
+    toString() {
+        return 'delay :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         const cancel = () => clearTimeout(timer);
         const runner = () => {
@@ -253,6 +273,10 @@ class DelayArrow extends SimpleAsyncArrow {
         }));
 
         this.duration = duration;
+    }
+
+    toString() {
+        return 'delay(' + this.duration + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -287,6 +311,10 @@ class SplitArrow extends Arrow {
         this.n = n;
     }
 
+    toString() {
+        return 'split(' + this.n + ') :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         // TODO - clone values
         k(Array.create(this.n, x));
@@ -307,6 +335,10 @@ class NthArrow extends Arrow {
         }));
 
         this.n = n;
+    }
+
+    toString() {
+        return 'nth(' + this.n + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
