@@ -131,11 +131,6 @@ var Arrow = (function () {
             throw new Error('Equals undefined');
         }
     }, {
-        key: 'toString',
-        value: function toString() {
-            return this.constructor.name + ' :: ' + this.type.toString();
-        }
-    }, {
         key: 'isAsync',
         value: function isAsync() {
             return false;
@@ -180,6 +175,11 @@ var Arrow = (function () {
 
         // Convenience API
 
+    }, {
+        key: 'named',
+        value: function named(name) {
+            return new NamedArrow(name, this);
+        }
     }, {
         key: 'lift',
         value: function lift() {
@@ -235,27 +235,32 @@ var Arrow = (function () {
     }, {
         key: 'tap',
         value: function tap() /* ...functions */{
-            var a = this;
-            for (var i = 0; i < arguments.length; i++) {
-                a = a.seq(arguments[i].lift().remember());
-            }
+            var sec = getNonNull(Array.copy(arguments)).map(function (a) {
+                return a.lift();
+            });
+            var all = [this].concat(sec);
+            var rem = [this].concat(sec.map(function (a) {
+                return a.remember();
+            }));
 
-            return a;
+            return new NamedArrow('tap(' + all.map(function (a) {
+                return a.toString();
+            }).join(', ') + ')', Arrow.seq(rem));
         }
     }, {
         key: 'on',
         value: function on(name, handler) {
-            return this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler);
+            return new NamedArrow('on(' + name + ', {0})', this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler), [handler]);
         }
     }, {
         key: 'remember',
         value: function remember() {
-            return this.carry().nth(1);
+            return new NamedArrow('remember({0})', this.carry().nth(1), [this]);
         }
     }, {
         key: 'carry',
         value: function carry() {
-            return new SplitArrow(2).seq(Arrow.id().all(this));
+            return new NamedArrow('carry({0})', new SplitArrow(2).seq(Arrow.id().all(this)), [this]);
         }
 
         // Repeating
@@ -265,9 +270,9 @@ var Arrow = (function () {
         value: function repeat() {
             var _this = this;
 
-            return Arrow.fix(function (a) {
+            return new NamedArrow('repeat({0})', Arrow.fix(function (a) {
                 return _this.wait(0).seq(Arrow['try'](Arrow.repeatTail(), a, Arrow.id()));
-            });
+            }), [this]);
         }
     }, {
         key: 'times',
@@ -277,17 +282,17 @@ var Arrow = (function () {
                 return --n > 0 ? Arrow.loop(x) : Arrow.halt(y);
             });
 
-            return this.carry().seq(rep).repeat();
+            return new NamedArrow('times(' + n + ', {0})', this.carry().seq(rep).repeat(), [this]);
         }
     }, {
         key: 'forever',
         value: function forever() {
-            return this.seq(Arrow.reptop()).repeat();
+            return new NamedArrow('forever({0})', this.seq(Arrow.reptop()).repeat(), [this]);
         }
     }, {
         key: 'whileTrue',
         value: function whileTrue() {
-            return this.carry().seq(Arrow.repcond()).repeat();
+            return new NamedArrow('whileTrue({0})', this.carry().seq(Arrow.repcond()).repeat(), [this]);
         }
     }]);
 
@@ -312,7 +317,11 @@ Arrow['try'] = function (a, s, f) {
     return new TryCombinator(a, s, f);
 };
 Arrow.fanout = function (arrows) {
-    return new SplitArrow(arrows.length).seq(Arrow.all(arrows));
+    arrows = getNonNull(arrows);
+    var result = new SplitArrow(arrows.length).seq(Arrow.all(arrows));
+    return new NamedArrow('fanout(' + arrows.map(function (a) {
+        return a.toString();
+    }).join(', ') + ')', result, arrows);
 };
 
 // Convenience
@@ -320,7 +329,7 @@ Arrow.repeat = function (a) {
     return a.repeat();
 };
 Arrow.bind = function (event, a) {
-    return Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]);
+    return new NamedArrow('bind(' + event + ', {0})', Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
 };
 Arrow['catch'] = function (a, f) {
     return Arrow['try'](a, Arrow.id(), f);
@@ -331,8 +340,26 @@ Arrow.id = function () {
     return new LiftedArrow(function (x) {
         return (/* @arrow :: 'a ~> 'a */x
         );
-    });
+    }).named('id');
 };
+Arrow.log = function () {
+    return new LiftedArrow(function (x) {
+        /* @arrow :: 'a ~> 'a */
+        console.log(x);
+        return x;
+    }).named('log');
+};
+
+Arrow.throwFalse = function () {
+    return new LiftedArrow(function (x) {
+        /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
+        if (x) {
+            throw x;
+        }
+    }).named('throwFalse');
+};
+
+// Repetition helpers
 Arrow.reptop = function () {
     return new LiftedArrow(function (x) {
         return (/* @arrow :: _ ~> <loop: _, halt: _> */Arrow.loop(null)
@@ -345,21 +372,6 @@ Arrow.repcond = function () {
         );
     });
 };
-Arrow.repcondInv = function () {
-    return new LiftedArrow(function (x, f) {
-        return (/* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */!f ? Arrow.loop(x) : Arrow.halt(null)
-        );
-    });
-};
-Arrow.throwFalse = function () {
-    return new LiftedArrow(function (x) {
-        /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
-        if (x) {
-            throw x;
-        }
-    });
-};
-
 Arrow.repeatTail = function () {
     return new LiftedArrow(function (x) {
         /* @arrow :: <loop: 'a, halt: 'b> ~> 'a \ ({}, {'b}) */
@@ -459,6 +471,11 @@ var Progress = (function () {
 
 var annotationCache = {};
 
+// Convenience
+Arrow.db = function (f, db) {
+    return new DBArrow(f, db);
+};
+
 var LiftedArrow = (function (_Arrow) {
     _inherits(LiftedArrow, _Arrow);
 
@@ -515,6 +532,11 @@ var LiftedArrow = (function (_Arrow) {
     }
 
     _createClass(LiftedArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'lift :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             try {
@@ -564,6 +586,11 @@ var ElemArrow = (function (_LiftedArrow) {
     //
 
     _createClass(ElemArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'elem :: ' + this.type.toString();
+        }
+    }, {
         key: 'equals',
         value: function equals(that) {
             return that instanceof ElemArrow && this.selector === that.selector;
@@ -582,6 +609,8 @@ var SimpleAsyncArrow = (function (_Arrow2) {
         _get(Object.getPrototypeOf(SimpleAsyncArrow.prototype), 'constructor', this).apply(this, arguments);
     }
 
+    // Simple Asynchronous Arrow that takes in a config object
+
     _createClass(SimpleAsyncArrow, [{
         key: 'isAsync',
         value: function isAsync() {
@@ -592,13 +621,13 @@ var SimpleAsyncArrow = (function (_Arrow2) {
     return SimpleAsyncArrow;
 })(Arrow);
 
-var AjaxArrow = (function (_SimpleAsyncArrow) {
-    _inherits(AjaxArrow, _SimpleAsyncArrow);
+var SimpleConfigBasedAsyncArrow = (function (_SimpleAsyncArrow) {
+    _inherits(SimpleConfigBasedAsyncArrow, _SimpleAsyncArrow);
 
-    function AjaxArrow(f) {
-        _classCallCheck(this, AjaxArrow);
+    function SimpleConfigBasedAsyncArrow(f, errorType) {
+        _classCallCheck(this, SimpleConfigBasedAsyncArrow);
 
-        _get(Object.getPrototypeOf(AjaxArrow.prototype), 'constructor', this).call(this, _construct(function () {
+        _get(Object.getPrototypeOf(SimpleConfigBasedAsyncArrow.prototype), 'constructor', this).call(this, _construct(function () {
             var start = window.performance.now();
 
             var s = f.toString();
@@ -607,7 +636,7 @@ var AjaxArrow = (function (_SimpleAsyncArrow) {
             var c = s.substring(i + 2, j);
 
             var ncs = new ConstraintSet([]);
-            var err = [new NamedType('AjaxError')];
+            var err = [new NamedType(errorType)];
 
             if (annotationCache[c] !== undefined) {
                 var conf = annotationCache[c][0];
@@ -619,7 +648,7 @@ var AjaxArrow = (function (_SimpleAsyncArrow) {
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
                 } catch (err) {
-                    throw new ComposeError('Ajax config function does not contain a parseable @conf annotation.\n' + err.message + '\n');
+                    throw new ComposeError('Config does not contain a parseable @conf annotation.\n' + err.message + '\n');
                 }
 
                 try {
@@ -628,7 +657,7 @@ var AjaxArrow = (function (_SimpleAsyncArrow) {
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
                 } catch (err) {
-                    throw new ComposeError('Ajax config function does not contain a parseable @resp annotation.\n' + err.message + '\n');
+                    throw new ComposeError('Config does not contain a parseable @resp annotation.\n' + err.message + '\n');
                 }
 
                 annotationCache[c] = [conf, resp];
@@ -644,7 +673,24 @@ var AjaxArrow = (function (_SimpleAsyncArrow) {
         this.c = f;
     }
 
+    return SimpleConfigBasedAsyncArrow;
+})(SimpleAsyncArrow);
+
+var AjaxArrow = (function (_SimpleConfigBasedAsyncArrow) {
+    _inherits(AjaxArrow, _SimpleConfigBasedAsyncArrow);
+
+    function AjaxArrow(f, db) {
+        _classCallCheck(this, AjaxArrow);
+
+        _get(Object.getPrototypeOf(AjaxArrow.prototype), 'constructor', this).call(this, f, 'AjaxError');
+    }
+
     _createClass(AjaxArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'ajax :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             var _this2 = this;
@@ -697,7 +743,71 @@ var AjaxArrow = (function (_SimpleAsyncArrow) {
     }]);
 
     return AjaxArrow;
-})(SimpleAsyncArrow);
+})(SimpleConfigBasedAsyncArrow);
+
+var QueryArrow = (function (_SimpleConfigBasedAsyncArrow2) {
+    _inherits(QueryArrow, _SimpleConfigBasedAsyncArrow2);
+
+    function QueryArrow(f, db) {
+        _classCallCheck(this, QueryArrow);
+
+        _get(Object.getPrototypeOf(QueryArrow.prototype), 'constructor', this).call(this, f, 'QueryError');
+        this.db = db;
+    }
+
+    _createClass(QueryArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'query :: ' + this.type.toString();
+        }
+    }, {
+        key: 'call',
+        value: function call(x, p, k, h) {
+            var _this3 = this;
+
+            if (x && x.constructor === Array && this.c.length > 1) {
+                var conf = this.c.apply(null, x);
+            } else {
+                var conf = this.c(x);
+            }
+
+            var abort = false;
+
+            var cancel = function cancel() {
+                abort = true;
+            };
+
+            var fail = h;
+            var succ = function succ(x) {
+                _check(_this3.type.out, x);
+                k(x);
+            };
+
+            this.db.query(conf.query, conf.param, function (err, rows) {
+                if (err) {
+                    if (!abort) {
+                        p.advance(cancelerId);
+                        fail(err);
+                    }
+                } else {
+                    if (!abort) {
+                        p.advance(cancelerId);
+                        succ(rows);
+                    }
+                }
+            });
+
+            var cancelerId = p.addCanceler(cancel);
+        }
+    }, {
+        key: 'equals',
+        value: function equals(that) {
+            return that instanceof DBArrow && this.config === that.config;
+        }
+    }]);
+
+    return QueryArrow;
+})(SimpleConfigBasedAsyncArrow);
 
 var EventArrow = (function (_SimpleAsyncArrow2) {
     _inherits(EventArrow, _SimpleAsyncArrow2);
@@ -713,15 +823,20 @@ var EventArrow = (function (_SimpleAsyncArrow2) {
     }
 
     _createClass(EventArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'event(' + this.name + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
-            var _this3 = this;
+            var _this4 = this;
 
             var abort = false;
 
             var cancel = function cancel() {
                 abort = true;
-                x.off(_this3.name, runner);
+                x.off(_this4.name, runner);
             };
 
             var runner = function runner(ev) {
@@ -758,6 +873,11 @@ var DynamicDelayArrow = (function (_SimpleAsyncArrow3) {
     }
 
     _createClass(DynamicDelayArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'delay :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             var cancel = function cancel() {
@@ -801,6 +921,11 @@ var DelayArrow = (function (_SimpleAsyncArrow4) {
     //
 
     _createClass(DelayArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'delay(' + this.duration + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             var cancel = function cancel() {
@@ -841,6 +966,11 @@ var SplitArrow = (function (_Arrow3) {
     }
 
     _createClass(SplitArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'split(' + this.n + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             // TODO - clone values
@@ -875,6 +1005,11 @@ var NthArrow = (function (_Arrow4) {
     }
 
     _createClass(NthArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return 'nth(' + this.n + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             k(x[this.n - 1]);
@@ -920,6 +1055,13 @@ var Combinator = (function (_Arrow5) {
     }
 
     _createClass(Combinator, [{
+        key: 'toString',
+        value: function toString() {
+            return this.constructor.name + '(' + this.arrows.map(function (a) {
+                return a.toString();
+            }).join(', ') + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'isAsync',
         value: function isAsync() {
             return this.arrows.some(function (a) {
@@ -942,18 +1084,58 @@ var Combinator = (function (_Arrow5) {
     return Combinator;
 })(Arrow);
 
-var NoEmitCombinator = (function (_Combinator) {
-    _inherits(NoEmitCombinator, _Combinator);
+var NamedArrow = (function (_Combinator) {
+    _inherits(NamedArrow, _Combinator);
 
-    function NoEmitCombinator(f) {
+    function NamedArrow(name, a, args) {
+        _classCallCheck(this, NamedArrow);
+
+        _get(Object.getPrototypeOf(NamedArrow.prototype), 'constructor', this).call(this, _construct(function () {
+            return a.type;
+        }), [a]);
+
+        this.name = format(name, (args || []).map(function (a) {
+            return a.toString();
+        }));
+    }
+
+    _createClass(NamedArrow, [{
+        key: 'toString',
+        value: function toString() {
+            return this.name + ' :: ' + this.arrows[0].type.toString();
+        }
+    }, {
+        key: 'call',
+        value: function call(x, p, k, h) {
+            this.arrows[0].call(x, p, k, h);
+        }
+    }, {
+        key: 'isAsync',
+        value: function isAsync() {
+            return this.arrows[0].isAsync();
+        }
+    }]);
+
+    return NamedArrow;
+})(Combinator);
+
+var NoEmitCombinator = (function (_Combinator2) {
+    _inherits(NoEmitCombinator, _Combinator2);
+
+    function NoEmitCombinator(a) {
         _classCallCheck(this, NoEmitCombinator);
 
         _get(Object.getPrototypeOf(NoEmitCombinator.prototype), 'constructor', this).call(this, _construct(function () {
-            return f.type;
-        }), [f]);
+            return a.type;
+        }), [a]);
     }
 
     _createClass(NoEmitCombinator, [{
+        key: 'toString',
+        value: function toString() {
+            return 'noemit(' + this.arrows[0].toString() + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             var quiet = new Progress(false);
@@ -979,11 +1161,13 @@ var NoEmitCombinator = (function (_Combinator) {
     return NoEmitCombinator;
 })(Combinator);
 
-var SeqCombinator = (function (_Combinator2) {
-    _inherits(SeqCombinator, _Combinator2);
+var SeqCombinator = (function (_Combinator3) {
+    _inherits(SeqCombinator, _Combinator3);
 
     function SeqCombinator(arrows) {
         _classCallCheck(this, SeqCombinator);
+
+        arrows = getNonNull(arrows);
 
         _get(Object.getPrototypeOf(SeqCombinator.prototype), 'constructor', this).call(this, _construct(function () {
             var sty = sanitizeTypes(arrows);
@@ -1022,6 +1206,13 @@ var SeqCombinator = (function (_Combinator2) {
     }
 
     _createClass(SeqCombinator, [{
+        key: 'toString',
+        value: function toString() {
+            return 'seq(' + this.arrows.map(function (a) {
+                return a.toString();
+            }).join(', ') + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             var rec = function rec(y, _ref) {
@@ -1047,11 +1238,13 @@ var SeqCombinator = (function (_Combinator2) {
     return SeqCombinator;
 })(Combinator);
 
-var AllCombinator = (function (_Combinator3) {
-    _inherits(AllCombinator, _Combinator3);
+var AllCombinator = (function (_Combinator4) {
+    _inherits(AllCombinator, _Combinator4);
 
     function AllCombinator(arrows) {
         _classCallCheck(this, AllCombinator);
+
+        arrows = getNonNull(arrows);
 
         _get(Object.getPrototypeOf(AllCombinator.prototype), 'constructor', this).call(this, _construct(function () {
             var sty = sanitizeTypes(arrows);
@@ -1087,9 +1280,16 @@ var AllCombinator = (function (_Combinator3) {
     }
 
     _createClass(AllCombinator, [{
+        key: 'toString',
+        value: function toString() {
+            return 'all(' + this.arrows.map(function (a) {
+                return a.toString();
+            }).join(', ') + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
-            var _this4 = this;
+            var _this5 = this;
 
             var numFinished = 0;
             var callResults = this.arrows.map(function (x) {
@@ -1101,7 +1301,7 @@ var AllCombinator = (function (_Combinator3) {
                     callResults[i] = y;
 
                     // Once results array is finished, continue
-                    if (++numFinished == _this4.arrows.length) {
+                    if (++numFinished == _this5.arrows.length) {
                         k(callResults);
                     }
                 }, h);
@@ -1112,11 +1312,13 @@ var AllCombinator = (function (_Combinator3) {
     return AllCombinator;
 })(Combinator);
 
-var AnyCombinator = (function (_Combinator4) {
-    _inherits(AnyCombinator, _Combinator4);
+var AnyCombinator = (function (_Combinator5) {
+    _inherits(AnyCombinator, _Combinator5);
 
     function AnyCombinator(arrows) {
         _classCallCheck(this, AnyCombinator);
+
+        arrows = getNonNull(arrows);
 
         _get(Object.getPrototypeOf(AnyCombinator.prototype), 'constructor', this).call(this, _construct(function () {
             var sty = sanitizeTypes(arrows);
@@ -1152,6 +1354,13 @@ var AnyCombinator = (function (_Combinator4) {
     }
 
     _createClass(AnyCombinator, [{
+        key: 'toString',
+        value: function toString() {
+            return 'any(' + this.arrows.map(function (a) {
+                return a.toString();
+            }).join(', ') + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
             // Note: This must be done at execution time instead of construction
@@ -1201,8 +1410,8 @@ var AnyCombinator = (function (_Combinator4) {
     return AnyCombinator;
 })(Combinator);
 
-var TryCombinator = (function (_Combinator5) {
-    _inherits(TryCombinator, _Combinator5);
+var TryCombinator = (function (_Combinator6) {
+    _inherits(TryCombinator, _Combinator6);
 
     function TryCombinator(a, s, f) {
         _classCallCheck(this, TryCombinator);
@@ -1253,9 +1462,16 @@ var TryCombinator = (function (_Combinator5) {
     //
 
     _createClass(TryCombinator, [{
+        key: 'toString',
+        value: function toString() {
+            return 'try(' + this.arrows.map(function (a) {
+                return a.toString();
+            }).join(', ') + ') :: ' + this.type.toString();
+        }
+    }, {
         key: 'call',
         value: function call(x, p, k, h) {
-            var _this5 = this;
+            var _this6 = this;
 
             // Invoke original error callback 'h' if either
             // callback creates an error value. This allows
@@ -1270,10 +1486,10 @@ var TryCombinator = (function (_Combinator5) {
             });
 
             this.arrows[0].call(x, branch, function (y) {
-                return _this5.arrows[1].call(y, p, k, h);
+                return _this6.arrows[1].call(y, p, k, h);
             }, function (z) {
                 branch.cancel();
-                _this5.arrows[2].call(z, p, k, h);
+                _this6.arrows[2].call(z, p, k, h);
             });
         }
     }, {
@@ -1349,6 +1565,15 @@ var ProxyArrow = (function (_Arrow6) {
     }
 
     _createClass(ProxyArrow, [{
+        key: 'toString',
+        value: function toString() {
+            if (this.arrow != null) {
+                return 'omega :: ' + this.arrow.type.toString();
+            }
+
+            return 'omega :: ???';
+        }
+    }, {
         key: 'freeze',
         value: function freeze(arrow) {
             this.arrow = arrow;
@@ -1438,6 +1663,23 @@ function descendants(param) {
     }
 
     return children;
+}
+
+function getNonNull(arrows) {
+    var filtered = arrows.filter(function (a) {
+        return a != null;
+    });
+    if (filtered.length > 0) {
+        return filtered;
+    }
+
+    throw new ComposeError('Combinator contains no non-null arguments.');
+}
+
+function format(format, args) {
+    return format.replace(/{(\d+)}/g, function (match, number) {
+        return typeof args[number] != 'undefined' ? args[number] : match;
+    });
 }
 
 var Type = (function () {
@@ -1696,11 +1938,11 @@ var TaggedUnionType = (function (_Type5) {
     _createClass(TaggedUnionType, [{
         key: 'equals',
         value: function equals(that) {
-            var _this6 = this;
+            var _this7 = this;
 
             if (that instanceof TaggedUnionType) {
                 return this.keys.length === that.keys.length && this.keys.every(function (k) {
-                    return _this6.vals[k].equals(that.vals[k]);
+                    return _this7.vals[k].equals(that.vals[k]);
                 });
             }
 
@@ -1709,10 +1951,10 @@ var TaggedUnionType = (function (_Type5) {
     }, {
         key: 'toString',
         value: function toString() {
-            var _this7 = this;
+            var _this8 = this;
 
             return '<' + this.keys.map(function (k) {
-                return k + ': ' + _this7.vals[k].toString();
+                return k + ': ' + _this8.vals[k].toString();
             }).join(', ') + '>';
         }
     }, {
@@ -1733,29 +1975,29 @@ var TaggedUnionType = (function (_Type5) {
     }, {
         key: 'isConcrete',
         value: function isConcrete() {
-            var _this8 = this;
+            var _this9 = this;
 
             return this.keys.every(function (k) {
-                return _this8.vals[k].isConcrete();
+                return _this9.vals[k].isConcrete();
             });
         }
     }, {
         key: 'harvest',
         value: function harvest() {
-            var _this9 = this;
+            var _this10 = this;
 
             return this.keys.reduce(function (acc, k) {
-                return acc.concat(_this9.vals[k].harvest());
+                return acc.concat(_this10.vals[k].harvest());
             }, []);
         }
     }, {
         key: 'substitute',
         value: function substitute(map) {
-            var _this10 = this;
+            var _this11 = this;
 
             var map = {};
             this.keys.forEach(function (k) {
-                map[k] = _this10.vals[k].substitute(map);
+                map[k] = _this11.vals[k].substitute(map);
             });
 
             return new TaggedUnionType(map);
@@ -1763,11 +2005,11 @@ var TaggedUnionType = (function (_Type5) {
     }, {
         key: 'sanitize',
         value: function sanitize(map) {
-            var _this11 = this;
+            var _this12 = this;
 
             var vals = {};
             this.keys.forEach(function (k) {
-                vals[k] = _this11.vals[k].sanitize(map);
+                vals[k] = _this12.vals[k].sanitize(map);
             });
 
             return new TaggedUnionType(vals);
@@ -1804,11 +2046,11 @@ var ArrayType = (function (_Type6) {
     }, {
         key: 'check',
         value: function check(value) {
-            var _this12 = this;
+            var _this13 = this;
 
             if (value && value.constructor === Array) {
                 value.forEach(function (v) {
-                    return _this12.type.check(v);
+                    return _this13.type.check(v);
                 });
             } else {
                 _get(Object.getPrototypeOf(ArrayType.prototype), 'check', this).call(this, value);
@@ -1870,11 +2112,11 @@ var TupleType = (function (_Type7) {
     }, {
         key: 'check',
         value: function check(value) {
-            var _this13 = this;
+            var _this14 = this;
 
             if (value && value.constructor === Array) {
                 value.forEach(function (v, i) {
-                    return _this13.types[i].check(v);
+                    return _this14.types[i].check(v);
                 });
             } else {
                 _get(Object.getPrototypeOf(TupleType.prototype), 'check', this).call(this, value);
@@ -1927,11 +2169,11 @@ var RecordType = (function (_Type8) {
     _createClass(RecordType, [{
         key: 'equals',
         value: function equals(that) {
-            var _this14 = this;
+            var _this15 = this;
 
             if (that instanceof RecordType) {
                 return this.keys.length === that.keys.length && this.keys.every(function (k) {
-                    return _this14.vals[k].equals(that.vals[k]);
+                    return _this15.vals[k].equals(that.vals[k]);
                 });
             }
 
@@ -1940,20 +2182,20 @@ var RecordType = (function (_Type8) {
     }, {
         key: 'toString',
         value: function toString() {
-            var _this15 = this;
+            var _this16 = this;
 
             return '{' + this.keys.map(function (k) {
-                return k + ': ' + _this15.vals[k].toString();
+                return k + ': ' + _this16.vals[k].toString();
             }).join(', ') + '}';
         }
     }, {
         key: 'check',
         value: function check(value) {
-            var _this16 = this;
+            var _this17 = this;
 
             try {
                 this.keys.forEach(function (k) {
-                    _this16.vals[k].check(value[k]);
+                    _this17.vals[k].check(value[k]);
                 });
             } catch (err) {
                 _get(Object.getPrototypeOf(RecordType.prototype), 'check', this).call(this, value);
@@ -1962,29 +2204,29 @@ var RecordType = (function (_Type8) {
     }, {
         key: 'isConcrete',
         value: function isConcrete() {
-            var _this17 = this;
+            var _this18 = this;
 
             return this.keys.every(function (k) {
-                return _this17.vals[k].isConcrete();
+                return _this18.vals[k].isConcrete();
             });
         }
     }, {
         key: 'harvest',
         value: function harvest() {
-            var _this18 = this;
+            var _this19 = this;
 
             return this.keys.reduce(function (acc, k) {
-                return acc.concat(_this18.vals[k].harvest());
+                return acc.concat(_this19.vals[k].harvest());
             }, []);
         }
     }, {
         key: 'substitute',
         value: function substitute(map) {
-            var _this19 = this;
+            var _this20 = this;
 
             var vals = {};
             this.keys.forEach(function (k) {
-                vals[k] = _this19.vals[k].substitute(map);
+                vals[k] = _this20.vals[k].substitute(map);
             });
 
             return new RecordType(vals);
@@ -1992,11 +2234,11 @@ var RecordType = (function (_Type8) {
     }, {
         key: 'sanitize',
         value: function sanitize(map) {
-            var _this20 = this;
+            var _this21 = this;
 
             var vals = {};
             this.keys.forEach(function (k) {
-                vals[k] = _this20.vals[k].sanitize(map);
+                vals[k] = _this21.vals[k].sanitize(map);
             });
 
             return new RecordType(vals);
@@ -2088,7 +2330,7 @@ var Constraint = (function () {
     }, {
         key: 'unary',
         value: function unary() {
-            var _this21 = this;
+            var _this22 = this;
 
             if (this.lower instanceof ArrayType && this.upper instanceof ArrayType) {
                 return [new Constraint(this.lower.type, this.upper.type)];
@@ -2096,19 +2338,19 @@ var Constraint = (function () {
 
             if (this.lower instanceof TupleType && this.upper instanceof TupleType) {
                 return this.upper.types.map(function (t, i) {
-                    return new Constraint(_this21.lower.types[i], t);
+                    return new Constraint(_this22.lower.types[i], t);
                 });
             }
 
             if (this.lower instanceof TaggedUnionType && this.upper instanceof TaggedUnionType) {
                 return this.lower.keys.map(function (k) {
-                    return new Constraint(_this21.lower.vals[k], _this21.upper.vals[k]);
+                    return new Constraint(_this22.lower.vals[k], _this22.upper.vals[k]);
                 });
             }
 
             if (this.lower instanceof RecordType && this.upper instanceof RecordType) {
                 return this.upper.keys.map(function (k) {
-                    return new Constraint(_this21.lower.vals[k], _this21.upper.vals[k]);
+                    return new Constraint(_this22.lower.vals[k], _this22.upper.vals[k]);
                 });
             }
 
@@ -2231,7 +2473,7 @@ var ConstraintSet = (function () {
 
 var ArrowType = (function () {
     function ArrowType(arg, out, constraints, errors) {
-        var _this22 = this;
+        var _this23 = this;
 
         _classCallCheck(this, ArrowType);
 
@@ -2248,10 +2490,10 @@ var ArrowType = (function () {
             var _loop = function () {
                 var type = _step3.value;
 
-                if (!_this22.errors.some(function (e) {
+                if (!_this23.errors.some(function (e) {
                     return e.equals(type);
                 })) {
-                    _this22.errors.push(type);
+                    _this23.errors.push(type);
                 }
             };
 

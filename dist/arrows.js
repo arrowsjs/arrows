@@ -108,10 +108,6 @@ class Arrow {
         throw new Error('Equals undefined')
     }
 
-    toString() {
-        return this.constructor.name + ' :: ' + this.type.toString();
-    }
-
     isAsync() {
         return false;
     }
@@ -145,6 +141,10 @@ class Arrow {
     }
 
     // Convenience API
+
+    named(name) {
+        return new NamedArrow(name, this);
+    }
 
     lift() {
       return this;
@@ -189,30 +189,29 @@ class Arrow {
     }
 
     tap(/* ...functions */) {
-      var a = this;
-      for (var i = 0; i < arguments.length; i++) {
-        a = a.seq(arguments[i].lift().remember());
-      }
+        var sec = getNonNull(Array.copy(arguments)).map(a => a.lift());
+        var all = [this].concat(sec);
+        var rem = [this].concat(sec.map(a => a.remember()));
 
-      return a;
+        return new NamedArrow('tap(' + all.map(a => a.toString()).join(', ' ) + ')', Arrow.seq(rem));
     }
 
     on(name, handler) {
-        return this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler);
+        return new NamedArrow('on(' + name + ', {0})', this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler), [handler]);
     }
 
     remember() {
-        return this.carry().nth(1);
+        return new NamedArrow('remember({0})', this.carry().nth(1), [this]);
     }
 
     carry() {
-        return new SplitArrow(2).seq(Arrow.id().all(this));
+        return new NamedArrow('carry({0})', new SplitArrow(2).seq(Arrow.id().all(this)), [this]);
     }
 
     // Repeating
 
     repeat() {
-        return Arrow.fix(a => this.wait(0).seq(Arrow.try(Arrow.repeatTail(), a, Arrow.id())));
+        return new NamedArrow('repeat({0})', Arrow.fix(a => this.wait(0).seq(Arrow.try(Arrow.repeatTail(), a, Arrow.id()))), [this]);
     }
 
     times(n) {
@@ -221,15 +220,15 @@ class Arrow {
           return (--n > 0) ? Arrow.loop(x) : Arrow.halt(y);
         });
 
-        return this.carry().seq(rep).repeat();
+        return new NamedArrow('times(' + n + ', {0})', this.carry().seq(rep).repeat(), [this]);
     }
 
     forever() {
-        return this.seq(Arrow.reptop()).repeat();
+        return new NamedArrow('forever({0})', this.seq(Arrow.reptop()).repeat(), [this]);
     }
 
     whileTrue() {
-        return this.carry().seq(Arrow.repcond()).repeat();
+        return new NamedArrow('whileTrue({0})', this.carry().seq(Arrow.repcond()).repeat(), [this]);
     }
 }
 
@@ -241,25 +240,35 @@ Arrow.seq    = arrows    => new SeqCombinator(arrows);
 Arrow.any    = arrows    => new AnyCombinator(arrows);
 Arrow.all    = arrows    => new AllCombinator(arrows);
 Arrow.try    = (a, s, f) => new TryCombinator(a, s, f);
-Arrow.fanout = arrows    => new SplitArrow(arrows.length).seq(Arrow.all(arrows));
+Arrow.fanout = arrows    => {
+    arrows = getNonNull(arrows);
+    var result = new SplitArrow(arrows.length).seq(Arrow.all(arrows));
+    return new NamedArrow('fanout(' + arrows.map(a => a.toString()).join(', ' ) + ')', result, arrows);
+}
 
 // Convenience
 Arrow.repeat = a          => a.repeat();
-Arrow.bind   = (event, a) => Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]);
+Arrow.bind   = (event, a) => new NamedArrow('bind(' + event + ', {0})', Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
 Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
 
 // Built-ins
-Arrow.id         = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x);
-Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: _ ~> <loop: _, halt: _> */ Arrow.loop(null));
-Arrow.repcond    = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ f ? Arrow.loop(x) : Arrow.halt(null));
-Arrow.repcondInv = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ !f ? Arrow.loop(x) : Arrow.halt(null));
+Arrow.id         = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x).named('id');
+Arrow.log        = () => new LiftedArrow(x => {
+    /* @arrow :: 'a ~> 'a */
+    console.log(x);
+    return x;
+}).named('log');
+
 Arrow.throwFalse = () => new LiftedArrow(x => {
   /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
   if (x) {
     throw x;
   }
-});
+}).named('throwFalse');
 
+// Repetition helpers
+Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: _ ~> <loop: _, halt: _> */ Arrow.loop(null));
+Arrow.repcond    = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ f ? Arrow.loop(x) : Arrow.halt(null));
 Arrow.repeatTail = () => new LiftedArrow(x => {
     /* @arrow :: <loop: 'a, halt: 'b> ~> 'a \ ({}, {'b}) */
     if (x.hasTag('loop')) {
@@ -333,6 +342,9 @@ class Progress {
 }
 var annotationCache = {};
 
+// Convenience
+Arrow.db = (f, db) => new DBArrow(f, db);
+
 class LiftedArrow extends Arrow {
     constructor(f) {
         if (!(f instanceof Function)) {
@@ -384,6 +396,10 @@ class LiftedArrow extends Arrow {
         this.f = f;
     }
 
+    toString() {
+        return 'lift :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         try {
             // If the function has more than one parameter and we have
@@ -419,6 +435,10 @@ class ElemArrow extends LiftedArrow {
         this.selector = selector;
     }
 
+    toString() {
+        return 'elem :: ' + this.type.toString();
+    }
+
     equals(that) {
         return that instanceof ElemArrow && this.selector === that.selector;
     }
@@ -434,8 +454,10 @@ class SimpleAsyncArrow extends Arrow {
     }
 }
 
-class AjaxArrow extends SimpleAsyncArrow {
-    constructor(f) {
+// Simple Asynchronous Arrow that takes in a config object
+
+class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
+     constructor(f, errorType) {
         super(_construct(() => {
             var start = window.performance.now();
 
@@ -445,7 +467,7 @@ class AjaxArrow extends SimpleAsyncArrow {
             var c = s.substring(i + 2, j);
 
             var ncs = new ConstraintSet([]);
-            var err = [new NamedType('AjaxError')];
+            var err = [new NamedType(errorType)];
 
             if (annotationCache[c] !== undefined) {
                 var conf = annotationCache[c][0];
@@ -457,7 +479,7 @@ class AjaxArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
                 } catch (err) {
-                  throw new ComposeError(`Ajax config function does not contain a parseable @conf annotation.\n${err.message}\n`)
+                  throw new ComposeError(`Config does not contain a parseable @conf annotation.\n${err.message}\n`)
                 }
 
                 try {
@@ -466,7 +488,7 @@ class AjaxArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
                 } catch (err) {
-                  throw new ComposeError(`Ajax config function does not contain a parseable @resp annotation.\n${err.message}\n`)
+                  throw new ComposeError(`Config does not contain a parseable @resp annotation.\n${err.message}\n`)
                 }
 
                 annotationCache[c] = [conf, resp];
@@ -480,6 +502,16 @@ class AjaxArrow extends SimpleAsyncArrow {
         }));
 
         this.c = f;
+    }
+}
+
+class AjaxArrow extends SimpleConfigBasedAsyncArrow {
+	constructor(f, db) {
+        super(f, 'AjaxError');
+	}
+
+    toString() {
+        return 'ajax :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -521,11 +553,66 @@ class AjaxArrow extends SimpleAsyncArrow {
     }
 }
 
+class QueryArrow extends SimpleConfigBasedAsyncArrow {
+    constructor(f, db) {
+        super(f, 'QueryError');
+        this.db = db;
+    }
+
+    toString() {
+        return 'query :: ' + this.type.toString();
+    }
+
+    call(x, p, k, h) {
+        if (x && x.constructor === Array && this.c.length > 1) {
+            var conf = this.c.apply(null, x);
+        } else {
+            var conf = this.c(x);
+        }
+
+        let abort = false;
+
+        const cancel = () => {
+            abort = true;
+        };
+
+        const fail = h;
+        const succ = x => {
+            _check(this.type.out, x);
+            k(x);
+        };
+
+        this.db.query(conf.query, conf.param, function (err, rows) {
+            if (err) {
+                if (!abort) {
+                    p.advance(cancelerId);
+                    fail(err);
+                }
+            } else {
+                if (!abort) {
+                    p.advance(cancelerId);
+                    succ(rows);
+                }
+            }
+        });
+
+        var cancelerId = p.addCanceler(cancel);
+    }
+
+    equals(that) {
+        return that instanceof DBArrow && this.config === that.config;
+    }
+}
+
 class EventArrow extends SimpleAsyncArrow {
     constructor(name) {
         // Elem ~> Event
         super(_construct(() => new ArrowType(new NamedType('Elem'), new NamedType('Event'))));
         this.name = name;
+    }
+
+    toString() {
+        return 'event(' + this.name + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -561,6 +648,10 @@ class DynamicDelayArrow extends SimpleAsyncArrow {
         }));
     }
 
+    toString() {
+        return 'delay :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         const cancel = () => clearTimeout(timer);
         const runner = () => {
@@ -586,6 +677,10 @@ class DelayArrow extends SimpleAsyncArrow {
         }));
 
         this.duration = duration;
+    }
+
+    toString() {
+        return 'delay(' + this.duration + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -620,6 +715,10 @@ class SplitArrow extends Arrow {
         this.n = n;
     }
 
+    toString() {
+        return 'split(' + this.n + ') :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         // TODO - clone values
         k(Array.create(this.n, x));
@@ -640,6 +739,10 @@ class NthArrow extends Arrow {
         }));
 
         this.n = n;
+    }
+
+    toString() {
+        return 'nth(' + this.n + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -667,6 +770,10 @@ class Combinator extends Arrow {
         this.arrows = arrows;
     }
 
+    toString() {
+        return this.constructor.name + '(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
+    }
+
     isAsync() {
         return this.arrows.some(a => a.isAsync());
     }
@@ -680,11 +787,37 @@ class Combinator extends Arrow {
     }
 }
 
-class NoEmitCombinator extends Combinator {
-    constructor(f) {
+class NamedArrow extends Combinator {
+    constructor(name, a, args) {
         super(_construct(() => {
-            return f.type;
-        }), [f]);
+            return a.type;
+        }), [a]);
+
+        this.name = format(name, (args || []).map(a => a.toString()));
+    }
+
+    toString() {
+        return this.name + ' :: ' + this.arrows[0].type.toString();
+    }
+
+    call(x, p, k, h) {
+        this.arrows[0].call(x, p, k, h);
+    }
+
+    isAsync() {
+        return this.arrows[0].isAsync();
+    }
+}
+
+class NoEmitCombinator extends Combinator {
+    constructor(a) {
+        super(_construct(() => {
+            return a.type;
+        }), [a]);
+    }
+
+    toString() {
+        return 'noemit(' + this.arrows[0].toString() + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -707,6 +840,8 @@ class NoEmitCombinator extends Combinator {
 
 class SeqCombinator extends Combinator {
     constructor(arrows) {
+        arrows = getNonNull(arrows);
+
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
@@ -743,6 +878,10 @@ class SeqCombinator extends Combinator {
        }), arrows);
     }
 
+    toString() {
+        return 'seq(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         const rec = (y, [head, ...tail]) => {
             if (head === undefined) {
@@ -758,6 +897,8 @@ class SeqCombinator extends Combinator {
 
 class AllCombinator extends Combinator {
     constructor(arrows) {
+        arrows = getNonNull(arrows);
+
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
@@ -791,6 +932,10 @@ class AllCombinator extends Combinator {
        }), arrows);
     }
 
+    toString() {
+        return 'all(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
+    }
+
     call(x, p, k, h) {
         var numFinished = 0;
         var callResults = this.arrows.map(x => null);
@@ -810,6 +955,8 @@ class AllCombinator extends Combinator {
 
 class AnyCombinator extends Combinator {
     constructor(arrows) {
+        arrows = getNonNull(arrows);
+
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
@@ -841,6 +988,10 @@ class AnyCombinator extends Combinator {
               throw new ComposeError(message + '\n\tInput => Any(' + sty.join(', ') + ')\n\tError => ' + err);
             }
        }), arrows);
+    }
+
+    toString() {
+        return 'any(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -920,6 +1071,10 @@ class TryCombinator extends Combinator {
               throw new ComposeError(message + '\n\tInput => Try(' + [sta, sts, stf].join(', ') + ')\n\tError => ' + err);
             }
         }), [a, s, f]);
+    }
+
+    toString() {
+        return 'try(' + this.arrows.map(a => a.toString()).join(', ') + ') :: ' + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -1003,6 +1158,14 @@ class ProxyArrow extends Arrow {
         this.arrow = null;
     }
 
+    toString() {
+        if (this.arrow != null) {
+            return 'omega :: ' + this.arrow.type.toString();
+        }
+
+        return 'omega :: ???';
+    }
+
     freeze(arrow) {
         this.arrow = arrow;
     }
@@ -1037,6 +1200,21 @@ function descendants(param) {
     }
 
     return children;
+}
+
+function getNonNull(arrows) {
+    var filtered = arrows.filter(a => a != null);
+    if (filtered.length > 0) {
+        return filtered;
+    }
+
+    throw new ComposeError('Combinator contains no non-null arguments.');
+}
+
+function format(format, args) {
+    return format.replace(/{(\d+)}/g, function(match, number) {
+        return typeof args[number] != 'undefined' ? args[number] : match;
+    });
 }
 class Type {
     equals(that) {
