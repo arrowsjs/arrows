@@ -269,6 +269,12 @@ Arrow.repeatTail = () => new LiftedArrow(x => {
     }
 });
 
+Arrow.log = () => new LiftedArrow(x => {
+    /* @arrow :: 'a ~> 'a */
+    console.log(x);
+    return x;
+});
+
 class TaggedValue {
     constructor(tag, val) {
         this.tag = tag;
