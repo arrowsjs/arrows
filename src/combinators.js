@@ -55,6 +55,8 @@ class NoEmitCombinator extends Combinator {
 
 class SeqCombinator extends Combinator {
     constructor(arrows) {
+        arrows = getNonNull(arrows);
+
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
@@ -106,6 +108,8 @@ class SeqCombinator extends Combinator {
 
 class AllCombinator extends Combinator {
     constructor(arrows) {
+        arrows = getNonNull(arrows);
+
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
@@ -158,6 +162,8 @@ class AllCombinator extends Combinator {
 
 class AnyCombinator extends Combinator {
     constructor(arrows) {
+        arrows = getNonNull(arrows);
+
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
 
@@ -385,4 +391,13 @@ function descendants(param) {
     }
 
     return children;
+}
+
+function getNonNull(arrows) {
+    var filtered = arrows.filter(a => a != null);
+    if (filtered.length > 0) {
+        return filtered;
+    }
+
+    throw new ComposeError('Combinator contains no non-null arguments.');
 }
