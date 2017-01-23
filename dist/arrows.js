@@ -215,12 +215,30 @@ class Arrow {
     }
 
     times(n) {
-        let rep = new LiftedArrow((x, y) => {
-          /* @arrow :: ('a, 'b) ~> <loop: 'a, halt: 'b> */
-          return (--n > 0) ? Arrow.loop(x) : Arrow.halt(y);
+        let init = new LiftedArrow(function() {
+            /* @arrow :: _ ~> Number */
+            return n;
         });
 
-        return new NamedArrow('times(' + n + ', {0})', this.carry().seq(rep).repeat(), [this]);
+        let rep = new LiftedArrow((n, x, y) => {
+            /* @arrow :: (Number, 'a, 'b) ~> <loop: (Number, 'a, 'a), halt: 'b> */
+            return n > 1 ? Arrow.loop([n - 1, x, x]) : Arrow.halt(y);
+        });
+
+        let arr = Arrow.seq([
+            Arrow.fanout([
+                init.lift(),
+                Arrow.id(),
+                Arrow.id()
+            ]),
+            Arrow.all([
+                Arrow.id(),
+                Arrow.id(),
+                this
+            ]).seq(rep).repeat()
+        ]);
+
+        return new NamedArrow('times(' + n + ', {0})', arr, [this]);
     }
 
     forever() {

@@ -277,12 +277,19 @@ var Arrow = (function () {
     }, {
         key: 'times',
         value: function times(n) {
-            var rep = new LiftedArrow(function (x, y) {
-                /* @arrow :: ('a, 'b) ~> <loop: 'a, halt: 'b> */
-                return --n > 0 ? Arrow.loop(x) : Arrow.halt(y);
+            var init = new LiftedArrow(function () {
+                /* @arrow :: _ ~> Number */
+                return n;
             });
 
-            return new NamedArrow('times(' + n + ', {0})', this.carry().seq(rep).repeat(), [this]);
+            var rep = new LiftedArrow(function (n, x, y) {
+                /* @arrow :: (Number, 'a, 'b) ~> <loop: (Number, 'a, 'a), halt: 'b> */
+                return n > 1 ? Arrow.loop([n - 1, x, x]) : Arrow.halt(y);
+            });
+
+            var arr = Arrow.seq([Arrow.fanout([init.lift(), Arrow.id(), Arrow.id()]), Arrow.all([Arrow.id(), Arrow.id(), this]).seq(rep).repeat()]);
+
+            return new NamedArrow('times(' + n + ', {0})', arr, [this]);
         }
     }, {
         key: 'forever',
