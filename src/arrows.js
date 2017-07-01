@@ -11,10 +11,10 @@ var benchmark = false;
 var displaychecks = false;
 
 function _benchmarkStart(shouldTypecheck) {
-  benchmark = true;
-  typecheck = shouldTypecheck;
+    benchmark = true;
+    typecheck = shouldTypecheck;
 
-  started = window.performance.now();
+    started = window.performance.now();
 }
 
 function _benchmarkResultsOrRun(/* ...arrows */) {
@@ -50,7 +50,7 @@ function _check(type, value) {
         typecheckTime += elapsed;
 
         if (displaychecks) {
-          console.log(typechecks + ' checks, ' + typecheckTime + 'ms');
+            console.log(typechecks + ' checks, ' + typecheckTime + 'ms');
         }
     }
 }
@@ -77,12 +77,12 @@ Function.prototype.lift = function() {
 }
 
 Number.prototype.lift = function() {
-  var value = this.valueOf();
+    var value = this.valueOf();
 
-  return new LiftedArrow(function() {
-      /* @arrow :: _ ~> Number */
-      return value;
-  });
+    return new LiftedArrow(function() {
+        /* @arrow :: _ ~> Number */
+        return value;
+    });
 }
 
 Boolean.prototype.lift = function() {
@@ -147,7 +147,7 @@ class Arrow {
     }
 
     lift() {
-      return this;
+        return this;
     }
 
     wait(duration) {
@@ -279,10 +279,10 @@ Arrow.log        = () => new LiftedArrow(x => {
 }).named('log');
 
 Arrow.throwFalse = () => new LiftedArrow(x => {
-  /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
-  if (x) {
-    throw x;
-  }
+    /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
+    if (x) {
+        throw x;
+    }
 }).named('throwFalse');
 
 // Repetition helpers

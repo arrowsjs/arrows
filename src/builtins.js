@@ -19,19 +19,19 @@ class LiftedArrow extends Arrow {
             } else {
                 var comment;
                 try {
-                  comment = c.match(/\@arrow :: (.*)\n?/)[1]
+                    comment = c.match(/\@arrow :: (.*)\n?/)[1]
                 } catch (err) {
-                  if (typecheck) {
-                    console.warn('Function being lifted does not contain an @arrow annotation');
-                  }
+                    if (typecheck) {
+                        console.warn('Function being lifted does not contain an @arrow annotation');
+                    }
 
-                  comment = '_ ~> _';
+                    comment = '_ ~> _';
                 }
 
                 try {
-                  parsed = parser.parse(comment);
+                    parsed = parser.parse(comment);
                 } catch (err) {
-                  throw new ComposeError(`Function being lifted does not contain a parseable @arrow annotation.\n${err.message}\n`);
+                    throw new ComposeError(`Function being lifted does not contain a parseable @arrow annotation.\n${err.message}\n`);
                 }
 
                 annotationCache[c] = parsed;
@@ -112,7 +112,7 @@ class SimpleAsyncArrow extends Arrow {
 // Simple Asynchronous Arrow that takes in a config object
 
 class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
-     constructor(f, errorType) {
+    constructor(f, errorType) {
         super(_construct(() => {
             var start = window.performance.now();
 
@@ -134,7 +134,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
                 } catch (err) {
-                  throw new ComposeError(`Config does not contain a parseable @conf annotation.\n${err.message}\n`)
+                    throw new ComposeError(`Config does not contain a parseable @conf annotation.\n${err.message}\n`)
                 }
 
                 try {
@@ -143,7 +143,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
                 } catch (err) {
-                  throw new ComposeError(`Config does not contain a parseable @resp annotation.\n${err.message}\n`)
+                    throw new ComposeError(`Config does not contain a parseable @resp annotation.\n${err.message}\n`)
                 }
 
                 annotationCache[c] = [conf, resp];
@@ -163,7 +163,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
 class AjaxArrow extends SimpleConfigBasedAsyncArrow {
     constructor(f) {
         super(f, 'AjaxError');
-	}
+    }
 
     toString() {
         return 'ajax :: ' + this.type.toString();

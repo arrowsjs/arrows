@@ -98,27 +98,27 @@ class ConstraintSet {
     }
 
     equals(that) {
-      if (this.constraints.length == that.constraints.length) {
-        for (var i = 0; i < this.constraints.length; i++) {
-          if (!this.contains(this.constraints[i])) {
-            return false;
-          }
+        if (this.constraints.length == that.constraints.length) {
+            for (var i = 0; i < this.constraints.length; i++) {
+                if (!this.contains(this.constraints[i])) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        return true;
-      }
-
-      return false;
+        return false;
     }
 
     contains(constraint) {
-      for (var i = 0; i < this.constraints.length; i++) {
-        if (this.constraints[i].equals(constraint)) {
-          return true;
+        for (var i = 0; i < this.constraints.length; i++) {
+            if (this.constraints[i].equals(constraint)) {
+                return true;
+            }
         }
-      }
 
-      return false;
+        return false;
     }
 
     toString() {
@@ -203,7 +203,7 @@ class ArrowType {
         var cs = this.prune();
 
         if (cs.constraints.length === this.constraints.constraints.length || initial.equals(cs)) {
-          return;
+            return;
         }
 
         this.constraints = cs;

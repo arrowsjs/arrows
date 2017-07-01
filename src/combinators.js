@@ -107,20 +107,20 @@ class SeqCombinator extends Combinator {
                     }
                 });
 
-               return new ArrowType(arg, out, ncs, err);
+                return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-              var message;
-              let location = getLocation(err.stack);
+                var message;
+                let location = getLocation(err.stack);
 
-              if (location) {
-                message = 'Unable to seq arrows at: ' + location;
-              } else {
-                message = 'Unable to seq arrows'
-              }
+                if (location) {
+                    message = 'Unable to seq arrows at: ' + location;
+                } else {
+                    message = 'Unable to seq arrows'
+                }
 
-              throw new ComposeError(message + '\n\tInput => Seq(' + sty.join(', ') + ')\n\tError => ' + err);
+                throw new ComposeError(message + '\n\tInput => Seq(' + sty.join(', ') + ')\n\tError => ' + err);
             }
-       }), arrows);
+        }), arrows);
     }
 
     toString() {
@@ -163,18 +163,18 @@ class AllCombinator extends Combinator {
 
                 return new ArrowType(new TupleType(arg), new TupleType(out), ncs, err);
             } catch (err) {
-              var message;
-              let location = getLocation(err.stack);
+                var message;
+                let location = getLocation(err.stack);
 
-              if (location) {
-                message = 'Unable to all arrows at: ' + location;
-              } else {
-                message = 'Unable to all arrows'
-              }
+                if (location) {
+                    message = 'Unable to all arrows at: ' + location;
+                } else {
+                    message = 'Unable to all arrows'
+                }
 
-              throw new ComposeError(message + '\n\tInput => All(' + sty.join(', ') + ')\n\tError => ' + err);
+                throw new ComposeError(message + '\n\tInput => All(' + sty.join(', ') + ')\n\tError => ' + err);
             }
-       }), arrows);
+        }), arrows);
     }
 
     toString() {
@@ -221,18 +221,18 @@ class AnyCombinator extends Combinator {
 
                 return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-              var message;
-              let location = getLocation(err.stack);
+                var message;
+                let location = getLocation(err.stack);
 
-              if (location) {
-                message = 'Unable to any arrows at: ' + location;
-              } else {
-                message = 'Unable to any arrows'
-              }
+                if (location) {
+                    message = 'Unable to any arrows at: ' + location;
+                } else {
+                    message = 'Unable to any arrows'
+                }
 
-              throw new ComposeError(message + '\n\tInput => Any(' + sty.join(', ') + ')\n\tError => ' + err);
+                throw new ComposeError(message + '\n\tInput => Any(' + sty.join(', ') + ')\n\tError => ' + err);
             }
-       }), arrows);
+        }), arrows);
     }
 
     toString() {
@@ -304,16 +304,16 @@ class TryCombinator extends Combinator {
 
                 return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-              var message;
-              let location = getLocation(err.stack);
+                var message;
+                let location = getLocation(err.stack);
 
-              if (location) {
-                message = 'Unable to try arrows at: ' + location;
-              } else {
-                message = 'Unable to try arrows'
-              }
+                if (location) {
+                    message = 'Unable to try arrows at: ' + location;
+                } else {
+                    message = 'Unable to try arrows'
+                }
 
-              throw new ComposeError(message + '\n\tInput => Try(' + [sta, sts, stf].join(', ') + ')\n\tError => ' + err);
+                throw new ComposeError(message + '\n\tInput => Try(' + [sta, sts, stf].join(', ') + ')\n\tError => ' + err);
             }
         }), [a, s, f]);
     }
@@ -341,7 +341,7 @@ class TryCombinator extends Combinator {
     }
 
     isAsync() {
-      return (this.arrows[0].isAsync() || this.arrows[1].isAsync()) && this.arrows[2].isAsync();
+        return (this.arrows[0].isAsync() || this.arrows[1].isAsync()) && this.arrows[2].isAsync();
     }
 }
 
@@ -358,7 +358,7 @@ Arrow.fix = function(ctor) {
     p.freeze(a);
 
     if (!(a instanceof Arrow)) {
-      throw new Error('Fix constructor must return an arrow')
+        throw new Error('Fix constructor must return an arrow')
     }
 
     var t = a.type.toString();
@@ -383,9 +383,9 @@ Arrow.fix = function(ctor) {
         let location = getLocation(err.stack);
 
         if (location) {
-          message = 'Unable to fix arrow at: ' + location;
+            message = 'Unable to fix arrow at: ' + location;
         } else {
-          message = 'Unable to fix arrow'
+            message = 'Unable to fix arrow'
         }
 
         throw new ComposeError(message + '\n\tInput => Fix(' + t + ')\n\tError => ' + err);

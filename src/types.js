@@ -232,7 +232,7 @@ class ArrayType extends Type {
     }
 
     toString() {
-         return '[' + this.type.toString() + ']';
+        return '[' + this.type.toString() + ']';
     }
 
     check(value) {
