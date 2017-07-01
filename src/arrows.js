@@ -268,11 +268,11 @@ Arrow.fanout = arrows    => {
 Arrow.repeat = a          => a.repeat();
 Arrow.bind   = (event, a) => new NamedArrow('bind(' + event + ', {0})', Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
 Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
-Arrow.db = (f, db)        => new QueryArrow(f, db);
+Arrow.db     = (f, db)    => new QueryArrow(f, db);
 
 // Built-ins
-Arrow.id         = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x).named('id');
-Arrow.log        = () => new LiftedArrow(x => {
+Arrow.id  = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x).named('id');
+Arrow.log = () => new LiftedArrow(x => {
     /* @arrow :: 'a ~> 'a */
     console.log(x);
     return x;
