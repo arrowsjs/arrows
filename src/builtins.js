@@ -1,8 +1,5 @@
 var annotationCache = {};
 
-// Convenience
-Arrow.db = (f, db) => new DBArrow(f, db);
-
 class LiftedArrow extends Arrow {
     constructor(f) {
         if (!(f instanceof Function)) {
@@ -164,7 +161,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
 }
 
 class AjaxArrow extends SimpleConfigBasedAsyncArrow {
-	constructor(f, db) {
+    constructor(f) {
         super(f, 'AjaxError');
 	}
 
@@ -258,7 +255,7 @@ class QueryArrow extends SimpleConfigBasedAsyncArrow {
     }
 
     equals(that) {
-        return that instanceof DBArrow && this.config === that.config;
+        return that instanceof QueryArrow && this.config === that.config;
     }
 }
 
