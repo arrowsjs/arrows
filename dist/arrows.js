@@ -11,10 +11,10 @@ var benchmark = false;
 var displaychecks = false;
 
 function _benchmarkStart(shouldTypecheck) {
-  benchmark = true;
-  typecheck = shouldTypecheck;
+    benchmark = true;
+    typecheck = shouldTypecheck;
 
-  started = window.performance.now();
+    started = window.performance.now();
 }
 
 function _benchmarkResultsOrRun(/* ...arrows */) {
@@ -50,7 +50,7 @@ function _check(type, value) {
         typecheckTime += elapsed;
 
         if (displaychecks) {
-          console.log(typechecks + ' checks, ' + typecheckTime + 'ms');
+            console.log(typechecks + ' checks, ' + typecheckTime + 'ms');
         }
     }
 }
@@ -77,12 +77,12 @@ Function.prototype.lift = function() {
 }
 
 Number.prototype.lift = function() {
-  var value = this.valueOf();
+    var value = this.valueOf();
 
-  return new LiftedArrow(function() {
-      /* @arrow :: _ ~> Number */
-      return value;
-  });
+    return new LiftedArrow(function() {
+        /* @arrow :: _ ~> Number */
+        return value;
+    });
 }
 
 Boolean.prototype.lift = function() {
@@ -147,7 +147,7 @@ class Arrow {
     }
 
     lift() {
-      return this;
+        return this;
     }
 
     wait(duration) {
@@ -268,6 +268,7 @@ Arrow.fanout = arrows    => {
 Arrow.repeat = a          => a.repeat();
 Arrow.bind   = (event, a) => new NamedArrow('bind(' + event + ', {0})', Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
 Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
+Arrow.db = (f, db)        => new QueryArrow(f, db);
 
 // Built-ins
 Arrow.id         = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x).named('id');
@@ -278,10 +279,10 @@ Arrow.log        = () => new LiftedArrow(x => {
 }).named('log');
 
 Arrow.throwFalse = () => new LiftedArrow(x => {
-  /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
-  if (x) {
-    throw x;
-  }
+    /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
+    if (x) {
+        throw x;
+    }
 }).named('throwFalse');
 
 // Repetition helpers
@@ -360,9 +361,6 @@ class Progress {
 }
 var annotationCache = {};
 
-// Convenience
-Arrow.db = (f, db) => new DBArrow(f, db);
-
 class LiftedArrow extends Arrow {
     constructor(f) {
         if (!(f instanceof Function)) {
@@ -382,19 +380,19 @@ class LiftedArrow extends Arrow {
             } else {
                 var comment;
                 try {
-                  comment = c.match(/\@arrow :: (.*)\n?/)[1]
+                    comment = c.match(/\@arrow :: (.*)\n?/)[1]
                 } catch (err) {
-                  if (typecheck) {
-                    console.warn('Function being lifted does not contain an @arrow annotation');
-                  }
+                    if (typecheck) {
+                        console.warn('Function being lifted does not contain an @arrow annotation');
+                    }
 
-                  comment = '_ ~> _';
+                    comment = '_ ~> _';
                 }
 
                 try {
-                  parsed = parser.parse(comment);
+                    parsed = parser.parse(comment);
                 } catch (err) {
-                  throw new ComposeError(`Function being lifted does not contain a parseable @arrow annotation.\n${err.message}\n`);
+                    throw new ComposeError(`Function being lifted does not contain a parseable @arrow annotation.\n${err.message}\n`);
                 }
 
                 annotationCache[c] = parsed;
@@ -475,7 +473,7 @@ class SimpleAsyncArrow extends Arrow {
 // Simple Asynchronous Arrow that takes in a config object
 
 class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
-     constructor(f, errorType) {
+    constructor(f, errorType) {
         super(_construct(() => {
             var start = window.performance.now();
 
@@ -497,7 +495,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
                 } catch (err) {
-                  throw new ComposeError(`Config does not contain a parseable @conf annotation.\n${err.message}\n`)
+                    throw new ComposeError(`Config does not contain a parseable @conf annotation.\n${err.message}\n`)
                 }
 
                 try {
@@ -506,7 +504,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
                 } catch (err) {
-                  throw new ComposeError(`Config does not contain a parseable @resp annotation.\n${err.message}\n`)
+                    throw new ComposeError(`Config does not contain a parseable @resp annotation.\n${err.message}\n`)
                 }
 
                 annotationCache[c] = [conf, resp];
@@ -524,9 +522,9 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
 }
 
 class AjaxArrow extends SimpleConfigBasedAsyncArrow {
-	constructor(f, db) {
+    constructor(f) {
         super(f, 'AjaxError');
-	}
+    }
 
     toString() {
         return 'ajax :: ' + this.type.toString();
@@ -618,7 +616,7 @@ class QueryArrow extends SimpleConfigBasedAsyncArrow {
     }
 
     equals(that) {
-        return that instanceof DBArrow && this.config === that.config;
+        return that instanceof QueryArrow && this.config === that.config;
     }
 }
 
@@ -880,20 +878,20 @@ class SeqCombinator extends Combinator {
                     }
                 });
 
-               return new ArrowType(arg, out, ncs, err);
+                return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-              var message;
-              let location = getLocation(err.stack);
+                var message;
+                let location = getLocation(err.stack);
 
-              if (location) {
-                message = 'Unable to seq arrows at: ' + location;
-              } else {
-                message = 'Unable to seq arrows'
-              }
+                if (location) {
+                    message = 'Unable to seq arrows at: ' + location;
+                } else {
+                    message = 'Unable to seq arrows'
+                }
 
-              throw new ComposeError(message + '\n\tInput => Seq(' + sty.join(', ') + ')\n\tError => ' + err);
+                throw new ComposeError(message + '\n\tInput => Seq(' + sty.join(', ') + ')\n\tError => ' + err);
             }
-       }), arrows);
+        }), arrows);
     }
 
     toString() {
@@ -936,18 +934,18 @@ class AllCombinator extends Combinator {
 
                 return new ArrowType(new TupleType(arg), new TupleType(out), ncs, err);
             } catch (err) {
-              var message;
-              let location = getLocation(err.stack);
+                var message;
+                let location = getLocation(err.stack);
 
-              if (location) {
-                message = 'Unable to all arrows at: ' + location;
-              } else {
-                message = 'Unable to all arrows'
-              }
+                if (location) {
+                    message = 'Unable to all arrows at: ' + location;
+                } else {
+                    message = 'Unable to all arrows'
+                }
 
-              throw new ComposeError(message + '\n\tInput => All(' + sty.join(', ') + ')\n\tError => ' + err);
+                throw new ComposeError(message + '\n\tInput => All(' + sty.join(', ') + ')\n\tError => ' + err);
             }
-       }), arrows);
+        }), arrows);
     }
 
     toString() {
@@ -994,18 +992,18 @@ class AnyCombinator extends Combinator {
 
                 return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-              var message;
-              let location = getLocation(err.stack);
+                var message;
+                let location = getLocation(err.stack);
 
-              if (location) {
-                message = 'Unable to any arrows at: ' + location;
-              } else {
-                message = 'Unable to any arrows'
-              }
+                if (location) {
+                    message = 'Unable to any arrows at: ' + location;
+                } else {
+                    message = 'Unable to any arrows'
+                }
 
-              throw new ComposeError(message + '\n\tInput => Any(' + sty.join(', ') + ')\n\tError => ' + err);
+                throw new ComposeError(message + '\n\tInput => Any(' + sty.join(', ') + ')\n\tError => ' + err);
             }
-       }), arrows);
+        }), arrows);
     }
 
     toString() {
@@ -1077,16 +1075,16 @@ class TryCombinator extends Combinator {
 
                 return new ArrowType(arg, out, ncs, err);
             } catch (err) {
-              var message;
-              let location = getLocation(err.stack);
+                var message;
+                let location = getLocation(err.stack);
 
-              if (location) {
-                message = 'Unable to try arrows at: ' + location;
-              } else {
-                message = 'Unable to try arrows'
-              }
+                if (location) {
+                    message = 'Unable to try arrows at: ' + location;
+                } else {
+                    message = 'Unable to try arrows'
+                }
 
-              throw new ComposeError(message + '\n\tInput => Try(' + [sta, sts, stf].join(', ') + ')\n\tError => ' + err);
+                throw new ComposeError(message + '\n\tInput => Try(' + [sta, sts, stf].join(', ') + ')\n\tError => ' + err);
             }
         }), [a, s, f]);
     }
@@ -1114,7 +1112,7 @@ class TryCombinator extends Combinator {
     }
 
     isAsync() {
-      return (this.arrows[0].isAsync() || this.arrows[1].isAsync()) && this.arrows[2].isAsync();
+        return (this.arrows[0].isAsync() || this.arrows[1].isAsync()) && this.arrows[2].isAsync();
     }
 }
 
@@ -1131,7 +1129,7 @@ Arrow.fix = function(ctor) {
     p.freeze(a);
 
     if (!(a instanceof Arrow)) {
-      throw new Error('Fix constructor must return an arrow')
+        throw new Error('Fix constructor must return an arrow')
     }
 
     var t = a.type.toString();
@@ -1156,9 +1154,9 @@ Arrow.fix = function(ctor) {
         let location = getLocation(err.stack);
 
         if (location) {
-          message = 'Unable to fix arrow at: ' + location;
+            message = 'Unable to fix arrow at: ' + location;
         } else {
-          message = 'Unable to fix arrow'
+            message = 'Unable to fix arrow'
         }
 
         throw new ComposeError(message + '\n\tInput => Fix(' + t + ')\n\tError => ' + err);
@@ -1468,7 +1466,7 @@ class ArrayType extends Type {
     }
 
     toString() {
-         return '[' + this.type.toString() + ']';
+        return '[' + this.type.toString() + ']';
     }
 
     check(value) {
@@ -1694,27 +1692,27 @@ class ConstraintSet {
     }
 
     equals(that) {
-      if (this.constraints.length == that.constraints.length) {
-        for (var i = 0; i < this.constraints.length; i++) {
-          if (!this.contains(this.constraints[i])) {
-            return false;
-          }
+        if (this.constraints.length == that.constraints.length) {
+            for (var i = 0; i < this.constraints.length; i++) {
+                if (!this.contains(this.constraints[i])) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        return true;
-      }
-
-      return false;
+        return false;
     }
 
     contains(constraint) {
-      for (var i = 0; i < this.constraints.length; i++) {
-        if (this.constraints[i].equals(constraint)) {
-          return true;
+        for (var i = 0; i < this.constraints.length; i++) {
+            if (this.constraints[i].equals(constraint)) {
+                return true;
+            }
         }
-      }
 
-      return false;
+        return false;
     }
 
     toString() {
@@ -1799,7 +1797,7 @@ class ArrowType {
         var cs = this.prune();
 
         if (cs.constraints.length === this.constraints.constraints.length || initial.equals(cs)) {
-          return;
+            return;
         }
 
         this.constraints = cs;
@@ -2091,15 +2089,15 @@ function glb(a, b) {
     throw new Error(`No greatest lower bound of '${a.toString()}' and '${b.toString()}'.`);
 }
 function getLocation(stack) {
-  let r = new RegExp(/(?:https?|file):\/\/(.+):(\d+):\d+/g);
+    let r = new RegExp(/(?:https?|file):\/\/(.+):(\d+):\d+/g);
 
-  for (let match of stack.match(r)) {
-    let parts = new RegExp(/(?:https?|file):\/\/(.+):(\d+):\d+/g).exec(match);
+    for (let match of stack.match(r)) {
+        let parts = new RegExp(/(?:https?|file):\/\/(.+):(\d+):\d+/g).exec(match);
 
-    if (!parts[1].endsWith('arrows.js')) {
-      return parts[1] + ':' + parts[2];
+        if (!parts[1].endsWith('arrows.js')) {
+            return parts[1] + ':' + parts[2];
+        }
     }
-  }
 
-  return '';
+    return '';
 }

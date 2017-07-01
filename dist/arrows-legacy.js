@@ -341,6 +341,9 @@ Arrow.bind = function (event, a) {
 Arrow['catch'] = function (a, f) {
     return Arrow['try'](a, Arrow.id(), f);
 };
+Arrow.db = function (f, db) {
+    return new QueryArrow(f, db);
+};
 
 // Built-ins
 Arrow.id = function () {
@@ -477,11 +480,6 @@ var Progress = (function () {
 })();
 
 var annotationCache = {};
-
-// Convenience
-Arrow.db = function (f, db) {
-    return new DBArrow(f, db);
-};
 
 var LiftedArrow = (function (_Arrow) {
     _inherits(LiftedArrow, _Arrow);
@@ -686,7 +684,7 @@ var SimpleConfigBasedAsyncArrow = (function (_SimpleAsyncArrow) {
 var AjaxArrow = (function (_SimpleConfigBasedAsyncArrow) {
     _inherits(AjaxArrow, _SimpleConfigBasedAsyncArrow);
 
-    function AjaxArrow(f, db) {
+    function AjaxArrow(f) {
         _classCallCheck(this, AjaxArrow);
 
         _get(Object.getPrototypeOf(AjaxArrow.prototype), 'constructor', this).call(this, f, 'AjaxError');
@@ -809,7 +807,7 @@ var QueryArrow = (function (_SimpleConfigBasedAsyncArrow2) {
     }, {
         key: 'equals',
         value: function equals(that) {
-            return that instanceof DBArrow && this.config === that.config;
+            return that instanceof QueryArrow && this.config === that.config;
         }
     }]);
 
