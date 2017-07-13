@@ -204,7 +204,7 @@ class AjaxArrow extends SimpleConfigBasedAsyncArrow {
 
     equals(that) {
         // TODO - deep comparison of objects
-        return that instanceof AjaxArrow && this.config === that.config;
+        return that instanceof AjaxArrow && this.c === that.c;
     }
 }
 
@@ -255,7 +255,8 @@ class QueryArrow extends SimpleConfigBasedAsyncArrow {
     }
 
     equals(that) {
-        return that instanceof QueryArrow && this.config === that.config;
+        // TODO - deep comparison of objects
+        return that instanceof QueryArrow && this.c === that.c;
     }
 }
 

@@ -743,7 +743,7 @@ var AjaxArrow = (function (_SimpleConfigBasedAsyncArrow) {
         key: 'equals',
         value: function equals(that) {
             // TODO - deep comparison of objects
-            return that instanceof AjaxArrow && this.config === that.config;
+            return that instanceof AjaxArrow && this.c === that.c;
         }
     }]);
 
@@ -807,7 +807,8 @@ var QueryArrow = (function (_SimpleConfigBasedAsyncArrow2) {
     }, {
         key: 'equals',
         value: function equals(that) {
-            return that instanceof QueryArrow && this.config === that.config;
+            // TODO - deep comparison of objects
+            return that instanceof QueryArrow && this.c === that.c;
         }
     }]);
 
