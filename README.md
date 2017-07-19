@@ -184,7 +184,7 @@ functions, this is done by adding a comment of the following form.
 var ajax = new AjaxArrow(function(searchTerm) {
     /**
      * @conf :: String
-     * @ajax :: [{name: String, price: Number}]
+     * @resp :: [{name: String, price: Number}]
      */
     return {
         'url': 'http://api.com/items?q=' + searchTerm,
