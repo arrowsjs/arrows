@@ -4,7 +4,7 @@ node_js:
 
 install:
   - npm install -g jison
-  - npm install -g babel-dev
+  - npm install -g babel-cli
   - npm install -g babel-preset-es2015
   - npm install -g uglifyjs
 
