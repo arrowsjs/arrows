@@ -15,7 +15,7 @@ deploy:
   provider: releases
   file:
     - arrows.js
-    - arrows-legacy.js
+    - arrows-es5.js
     - arrows.min.js
   on:
     repo: efritz/arrows
