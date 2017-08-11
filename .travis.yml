@@ -15,7 +15,7 @@ deploy:
   provider: releases
   file:
     - arrows.js
-    - arrows-es5.js
+    - arrows.es5.js
     - arrows.min.js
   skip_cleanup: true
   on:
