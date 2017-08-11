@@ -10,7 +10,7 @@ a function is lifted into an arrow it is converted into
 This allows the composition of both synchronous and asynchronous arrows to use the same
 syntax - all callback functions are invisible to the user.
 
-For literature and examples, see the [Project Homepage](http://arrows.eric-fritz.com).
+For literature and examples, see the [Project Homepage](http://arrowsjs.io).
 
 ## Usage
 
