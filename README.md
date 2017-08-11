@@ -1,5 +1,7 @@
 # Arrows
 
+[![Build Status](https://secure.travis-ci.org/efritz/arrows.png)](http://travis-ci.org/efritz/arrows)
+
 The Arrows library provides methods for composing asynchronous functions in JavaScript.
 
 An arrow can be viewed as a simple wrapper around a JavaScript function. Internally, when
