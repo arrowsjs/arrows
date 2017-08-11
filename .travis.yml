@@ -1,8 +1,18 @@
+install:
+  - npm install -g jison
+  - npm install -g babel-dev
+  - npm install -g babel-preset-es2015
+  - npm install -g uglifyjs
+
+script:
+  - ./build.sh
+
 deploy:
   provider: releases
   file:
-    - dist/arrows.js
-    - dist/arrows-legacy.js
+    - arrows.js
+    - arrows-legacy.js
+    - arrows.min.js
   on:
     repo: efritz/arrows
   api_key:
