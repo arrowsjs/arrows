@@ -6,7 +6,6 @@ install:
   - npm install jison
   - npm install babel-cli
   - npm install babel-preset-es2015
-  - npm install uglify-js
 
 script:
   - ./build.sh
@@ -16,7 +15,6 @@ deploy:
   file:
     - arrows.js
     - arrows.es5.js
-    - arrows.min.js
   skip_cleanup: true
   on:
     repo: efritz/arrows

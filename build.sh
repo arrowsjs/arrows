@@ -13,6 +13,3 @@ cat src/util.js >> arrows.js
 
 # Create version compatible with ES5
 babel arrows.js -o arrows.es5.js
-
-# Minify the ES5 version
-uglifyjs arrows.es5.js -o arrows.min.js
