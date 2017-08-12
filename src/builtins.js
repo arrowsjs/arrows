@@ -29,7 +29,8 @@ class LiftedArrow extends Arrow {
                 }
 
                 try {
-                    parsed = parser.parse(comment);
+                    // jison exports the parser name like this
+                    parsed = arrows.parse(comment);
                 } catch (err) {
                     throw new ComposeError(`Function being lifted does not contain a parseable @arrow annotation.\n${err.message}\n`);
                 }
@@ -129,7 +130,8 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                 var resp = annotationCache[c][1];
             } else {
                 try {
-                    var conf = parser.parse(c.match(/\@conf :: (.*)\n?/)[1]);
+                    // jison exports the parser name like this
+                    var conf = arrows.parse(c.match(/\@conf :: (.*)\n?/)[1]);
 
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
@@ -138,7 +140,8 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
                 }
 
                 try {
-                    var resp = parser.parse(c.match(/\@resp :: (.*)\n?/)[1]);
+                    // jison exports the parser name like this
+                    var resp = arrows.parse(c.match(/\@resp :: (.*)\n?/)[1]);
 
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
