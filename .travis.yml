@@ -3,9 +3,8 @@ node_js:
   - '7'
 
 install:
-  - npm install jison
-  - npm install babel-cli
-  - npm install babel-preset-es2015
+  - npm install
+  - npm run build
 
 script:
   - ./build.sh
@@ -13,8 +12,9 @@ script:
 deploy:
   provider: releases
   file:
-    - arrows.js
-    - arrows.es5.js
+    - dist/arrows.js
+    - dist/arrows.es5.js
+    - dist/arrows.min.js
   skip_cleanup: true
   on:
     repo: efritz/arrows
