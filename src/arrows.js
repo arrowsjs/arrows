@@ -271,7 +271,11 @@ Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
 Arrow.db     = (f, db)    => new QueryArrow(f, db);
 
 // Built-ins
-Arrow.id  = () => new LiftedArrow(x => /* @arrow :: 'a ~> 'a */ x).named('id');
+Arrow.id  = () => new LiftedArrow(x => {
+    /* @arrow :: 'a ~> 'a */
+    return x;
+}).named('id');
+
 Arrow.log = () => new LiftedArrow(x => {
     /* @arrow :: 'a ~> 'a */
     console.log(x);
@@ -286,8 +290,16 @@ Arrow.throwFalse = () => new LiftedArrow(x => {
 }).named('throwFalse');
 
 // Repetition helpers
-Arrow.reptop     = () => new LiftedArrow(x => /* @arrow :: _ ~> <loop: _, halt: _> */ Arrow.loop(null));
-Arrow.repcond    = () => new LiftedArrow((x, f) => /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */ f ? Arrow.loop(x) : Arrow.halt(null));
+Arrow.reptop     = () => new LiftedArrow(x => {
+    /* @arrow :: _ ~> <loop: _, halt: _> */
+    return Arrow.loop(null)
+});
+
+Arrow.repcond    = () => new LiftedArrow((x, f) =>{
+    /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */
+    return f ? Arrow.loop(x) : Arrow.halt(null)
+});
+
 Arrow.repeatTail = () => new LiftedArrow(x => {
     /* @arrow :: <loop: 'a, halt: 'b> ~> 'a \ ({}, {'b}) */
     if (x.hasTag('loop')) {
