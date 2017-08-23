@@ -91,8 +91,8 @@ bound_tail
 %%
 
 function pairsToMap(pairs) {
-    let map = {};
-    pairs.forEach(k => {
+    var map = {};
+    pairs.forEach(function(k) {
         if (k[0] in map) {
             throw new Error("Duplicate key in record type.");
         }
