@@ -58,15 +58,17 @@ class LiftedArrow extends Arrow {
     }
 
     call(x, p, k, h) {
+        let result;
+
         try {
             // If the function has more than one parameter and we have
             // an array argument, spread the elements. Else, just call
             // the function with a single argument.
-
+            
             if (x && x.constructor === Array && this.f.length > 1) {
-                let result = this.f.apply(null, x);
+                result = this.f.apply(null, x);
             } else {
-                let result = this.f(x);
+                result = this.f(x);
             }
 
             _check(this.type.out, result);
@@ -130,13 +132,16 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
             let ncs = new ConstraintSet([]);
             let err = [new NamedType(errorType)];
 
+            let conf;
+            let resp;
+
             if (annotationCache[c] !== undefined) {
-                let conf = annotationCache[c][0];
-                let resp = annotationCache[c][1];
+                conf = annotationCache[c][0];
+                resp = annotationCache[c][1];
             } else {
                 try {
                     // jison exports the parser name like this
-                    let conf = parser.parse(c.match(/\@conf :: (.*)\n?/)[1]);
+                    conf = parser.parse(c.match(/\@conf :: (.*)\n?/)[1]);
 
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
@@ -146,7 +151,7 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
 
                 try {
                     // jison exports the parser name like this
-                    let resp = parser.parse(c.match(/\@resp :: (.*)\n?/)[1]);
+                    resp = parser.parse(c.match(/\@resp :: (.*)\n?/)[1]);
 
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
@@ -184,10 +189,11 @@ class AjaxArrow extends SimpleConfigBasedAsyncArrow {
 
         // TODO - wrap this in try
 
+        let conf;
         if (x && x.constructor === Array && this.c.length > 1) {
-            let conf = this.c.apply(null, x);
+            conf = this.c.apply(null, x);
         } else {
-            let conf = this.c(x);
+            conf = this.c(x);
         }
 
         let abort = false;
@@ -227,10 +233,11 @@ class QueryArrow extends SimpleConfigBasedAsyncArrow {
     }
 
     call(x, p, k, h) {
+        let conf;
         if (x && x.constructor === Array && this.c.length > 1) {
-            let conf = this.c.apply(null, x);
+            conf = this.c.apply(null, x);
         } else {
-            let conf = this.c(x);
+            conf = this.c(x);
         }
 
         let abort = false;
