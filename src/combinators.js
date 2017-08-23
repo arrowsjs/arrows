@@ -34,6 +34,8 @@ class Combinator extends Arrow {
 
 class NamedArrow extends Combinator {
     constructor(name, a, args) {
+        ensureArrow(a);
+
         super(_construct(() => {
             return a.type;
         }), [a]);
@@ -56,6 +58,8 @@ class NamedArrow extends Combinator {
 
 class NoEmitCombinator extends Combinator {
     constructor(a) {
+        ensureArrow(a);
+        
         super(_construct(() => {
             return a.type;
         }), [a]);
@@ -85,7 +89,7 @@ class NoEmitCombinator extends Combinator {
 
 class SeqCombinator extends Combinator {
     constructor(arrows) {
-        arrows = getNonNull(arrows);
+        arrows = getNonNullArrows(arrows);
 
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
@@ -142,7 +146,7 @@ class SeqCombinator extends Combinator {
 
 class AllCombinator extends Combinator {
     constructor(arrows) {
-        arrows = getNonNull(arrows);
+        arrows = getNonNullArrows(arrows);
 
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
@@ -200,7 +204,7 @@ class AllCombinator extends Combinator {
 
 class AnyCombinator extends Combinator {
     constructor(arrows) {
-        arrows = getNonNull(arrows);
+        arrows = getNonNullArrows(arrows);
 
         super(_construct(() => {
             var sty = sanitizeTypes(arrows);
@@ -447,13 +451,20 @@ function descendants(param) {
     return children;
 }
 
-function getNonNull(arrows) {
+function getNonNullArrowsArrows(arrows) {
     var filtered = arrows.filter(a => a != null);
-    if (filtered.length > 0) {
-        return filtered;
+    if (filtered.length == 0) {
+        throw new ComposeError('Combinator contains no non-null arguments.');
     }
 
-    throw new ComposeError('Combinator contains no non-null arguments.');
+    filtered.foreach(ensureArrow);
+    return filtered;
+}
+
+function ensureArrow(arrow) {
+    if (!(arrow instanceof Arrow)) {
+        throw new ComposeError('Passed non-arrow to combinator')
+    }
 }
 
 function format(format, args) {

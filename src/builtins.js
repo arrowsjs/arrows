@@ -114,6 +114,10 @@ class SimpleAsyncArrow extends Arrow {
 
 class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
     constructor(f, errorType) {
+        if (!(f instanceof Function)) {
+            throw new Error('Cannot use non-function as configuration value');
+        }
+
         super(_construct(() => {
             var start = window.performance.now();
 

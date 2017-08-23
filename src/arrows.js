@@ -193,7 +193,7 @@ class Arrow {
     }
 
     tap(/* ...functions */) {
-        var sec = getNonNull(Array.copy(arguments)).map(a => a.lift());
+        var sec = getNonNullArrows(Array.copy(arguments)).map(a => a.lift());
         var all = [this].concat(sec);
         var rem = [this].concat(sec.map(a => a.remember()));
 
@@ -263,7 +263,7 @@ Arrow.any    = arrows    => new AnyCombinator(arrows);
 Arrow.all    = arrows    => new AllCombinator(arrows);
 Arrow.try    = (a, s, f) => new TryCombinator(a, s, f);
 Arrow.fanout = arrows    => {
-    arrows = getNonNull(arrows);
+    arrows = getNonNullArrows(arrows);
     var result = new SplitArrow(arrows.length).seq(Arrow.all(arrows));
     return new NamedArrow('fanout(' + arrows.map(a => a.toString()).join(', ' ) + ')', result, arrows);
 }
