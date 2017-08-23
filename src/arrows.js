@@ -193,7 +193,7 @@ class Arrow {
     }
 
     tap(/* ...functions */) {
-        let sec = getNonNullArrows(Array.copy(arguments)).map(a => a.lift());
+        let sec = getNonNullElems(Array.copy(arguments)).map(a => a.lift());
         let all = [this].concat(sec);
         let rem = [this].concat(sec.map(a => a.remember()));
 

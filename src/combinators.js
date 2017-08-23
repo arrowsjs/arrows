@@ -440,6 +440,27 @@ class ProxyArrow extends Arrow {
     }
 }
 
+function getNonNullArrows(arrows) {
+    let filtered = getNonNullElems(arrows);
+    filtered.forEach(ensureArrow);
+    return filtered;
+}
+
+function getNonNullElems(arrows) {
+    let filtered = arrows.filter(a => a != null);
+    if (filtered.length == 0) {
+        throw new ComposeError("Combinator contains no non-null arguments.");
+    }
+
+    return filtered
+}
+
+function ensureArrow(arrow) {
+    if (!(arrow instanceof Arrow)) {
+        throw new ComposeError("Passed non-arrow to combinator");
+    }
+}
+
 function descendants(param) {
     let children = [param];
     for (let child of param.children) {
@@ -449,22 +470,6 @@ function descendants(param) {
     }
 
     return children;
-}
-
-function getNonNullArrowsArrows(arrows) {
-    let filtered = arrows.filter(a => a != null);
-    if (filtered.length == 0) {
-        throw new ComposeError("Combinator contains no non-null arguments.");
-    }
-
-    filtered.foreach(ensureArrow);
-    return filtered;
-}
-
-function ensureArrow(arrow) {
-    if (!(arrow instanceof Arrow)) {
-        throw new ComposeError("Passed non-arrow to combinator");
-    }
 }
 
 function format(format, args) {
