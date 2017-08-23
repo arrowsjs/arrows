@@ -1,14 +1,14 @@
-var numarrows = 0;
-var numannotations = 0;
-var annotationParseTime = 0;
+let numarrows = 0;
+let numannotations = 0;
+let annotationParseTime = 0;
 
-var typechecks = 0;
-var typecheckTime = 0;
+let typechecks = 0;
+let typecheckTime = 0;
 
-var started;
-var typecheck = true;
-var benchmark = false;
-var displaychecks = false;
+let started;
+let typecheck = true;
+let benchmark = false;
+let displaychecks = false;
 
 function _benchmarkStart(shouldTypecheck) {
     benchmark = true;
@@ -21,11 +21,11 @@ function _benchmarkResultsOrRun(/* ...arrows */) {
     if (benchmark) {
         let elapsed = window.performance.now() - started;
 
-        console.log('Arrows: ' + numarrows);
-        console.log('Num annotations: ' + numannotations);
-        console.log('Composition time: ' + elapsed + ' (' + annotationParseTime + ')');
+        console.log("Arrows: " + numarrows);
+        console.log("Num annotations: " + numannotations);
+        console.log("Composition time: " + elapsed + " (" + annotationParseTime + ")");
     } else {
-        for (var i = 0; i < arguments.length; i++) {
+        for (let i = 0; i < arguments.length; i++) {
             arguments[i].run();
         }
     }
@@ -50,49 +50,49 @@ function _check(type, value) {
         typecheckTime += elapsed;
 
         if (displaychecks) {
-            console.log(typechecks + ' checks, ' + typecheckTime + 'ms');
+            console.log(typechecks + " checks, " + typecheckTime + "ms");
         }
     }
 }
 
 Array.create = function(length, value) {
-    var arr = [];
+    let arr = [];
     while (--length >= 0) {
         arr.push(value);
     }
 
     return arr;
-}
+};
 
 Array.copy = function(array) {
     return [].slice.call(array);
-}
+};
 
 Array.prototype.unique = function() {
     return this.filter((v, i, s) => s.indexOf(v) === i);
-}
+};
 
 Function.prototype.lift = function() {
-  return new LiftedArrow(this);
-}
+    return new LiftedArrow(this);
+};
 
 Number.prototype.lift = function() {
-    var value = this.valueOf();
+    let value = this.valueOf();
 
     return new LiftedArrow(function() {
         /* @arrow :: _ ~> Number */
         return value;
     });
-}
+};
 
 Boolean.prototype.lift = function() {
-    var value = this.valueOf();
+    let value = this.valueOf();
 
     return new LiftedArrow(function() {
         /* @arrow : _ ~> Bool */
         return value;
     });
-}
+};
 
 class Arrow {
     constructor(type) {
@@ -101,11 +101,11 @@ class Arrow {
     }
 
     call(x, p, k, h) {
-        throw new Error('Call undefined')
+        throw new Error("Call undefined");
     }
 
     equals(that) {
-        throw new Error('Equals undefined')
+        throw new Error("Equals undefined");
     }
 
     isAsync() {
@@ -114,10 +114,10 @@ class Arrow {
 
     run() {
         if (!(this.type.arg instanceof TopType)) {
-            throw new Error('Cannot run an arrow that takes arguments')
+            throw new Error("Cannot run an arrow that takes arguments");
         }
 
-        var p = new Progress(true);
+        let p = new Progress(true);
         this.call(null, p, () => {}, err => { throw err; });
         return p;
     }
@@ -193,29 +193,29 @@ class Arrow {
     }
 
     tap(/* ...functions */) {
-        var sec = getNonNullArrows(Array.copy(arguments)).map(a => a.lift());
-        var all = [this].concat(sec);
-        var rem = [this].concat(sec.map(a => a.remember()));
+        let sec = getNonNullArrows(Array.copy(arguments)).map(a => a.lift());
+        let all = [this].concat(sec);
+        let rem = [this].concat(sec.map(a => a.remember()));
 
-        return new NamedArrow('tap(' + all.map(a => a.toString()).join(', ' ) + ')', Arrow.seq(rem));
+        return new NamedArrow("tap(" + all.map(a => a.toString()).join(", " ) + ")", Arrow.seq(rem));
     }
 
     on(name, handler) {
-        return new NamedArrow('on(' + name + ', {0})', this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler), [handler]);
+        return new NamedArrow("on(" + name + ", {0})", this.seq(new SplitArrow(2), Arrow.id().all(new EventArrow(name)), handler), [handler]);
     }
 
     remember() {
-        return new NamedArrow('remember({0})', this.carry().nth(1), [this]);
+        return new NamedArrow("remember({0})", this.carry().nth(1), [this]);
     }
 
     carry() {
-        return new NamedArrow('carry({0})', new SplitArrow(2).seq(Arrow.id().all(this)), [this]);
+        return new NamedArrow("carry({0})", new SplitArrow(2).seq(Arrow.id().all(this)), [this]);
     }
 
     // Repeating
 
     repeat() {
-        return new NamedArrow('repeat({0})', Arrow.fix(a => this.wait(0).seq(Arrow.try(Arrow.repeatTail(), a, Arrow.id()))), [this]);
+        return new NamedArrow("repeat({0})", Arrow.fix(a => this.wait(0).seq(Arrow.try(Arrow.repeatTail(), a, Arrow.id()))), [this]);
     }
 
     times(n) {
@@ -225,7 +225,7 @@ class Arrow {
         });
 
         let rep = new LiftedArrow((n, x, y) => {
-            /* @arrow :: (Number, 'a, 'b) ~> <loop: (Number, 'a, 'a), halt: 'b> */
+            /* @arrow :: (Number, "a, "b) ~> <loop: (Number, "a, "a), halt: "b> */
             return n > 1 ? Arrow.loop([n - 1, x, x]) : Arrow.halt(y);
         });
 
@@ -242,15 +242,15 @@ class Arrow {
             ]).seq(rep).repeat()
         ]);
 
-        return new NamedArrow('times(' + n + ', {0})', arr, [this]);
+        return new NamedArrow("times(" + n + ", {0})", arr, [this]);
     }
 
     forever() {
-        return new NamedArrow('forever({0})', this.seq(Arrow.reptop()).repeat(), [this]);
+        return new NamedArrow("forever({0})", this.seq(Arrow.reptop()).repeat(), [this]);
     }
 
     whileTrue() {
-        return new NamedArrow('whileTrue({0})', this.carry().seq(Arrow.repcond()).repeat(), [this]);
+        return new NamedArrow("whileTrue({0})", this.carry().seq(Arrow.repcond()).repeat(), [this]);
     }
 }
 
@@ -264,49 +264,49 @@ Arrow.all    = arrows    => new AllCombinator(arrows);
 Arrow.try    = (a, s, f) => new TryCombinator(a, s, f);
 Arrow.fanout = arrows    => {
     arrows = getNonNullArrows(arrows);
-    var result = new SplitArrow(arrows.length).seq(Arrow.all(arrows));
-    return new NamedArrow('fanout(' + arrows.map(a => a.toString()).join(', ' ) + ')', result, arrows);
-}
+    let result = new SplitArrow(arrows.length).seq(Arrow.all(arrows));
+    return new NamedArrow("fanout(" + arrows.map(a => a.toString()).join(", " ) + ")", result, arrows);
+};
 
 // Convenience
 Arrow.repeat = a          => a.repeat();
-Arrow.bind   = (event, a) => new NamedArrow('bind(' + event + ', {0})', Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
+Arrow.bind   = (event, a) => new NamedArrow("bind(" + event + ", {0})", Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
 Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
 Arrow.db     = (f, db)    => new QueryArrow(f, db);
 
 // Built-ins
 Arrow.id  = () => new LiftedArrow(x => {
-    /* @arrow :: 'a ~> 'a */
+    /* @arrow :: "a ~> "a */
     return x;
-}).named('id');
+}).named("id");
 
 Arrow.log = () => new LiftedArrow(x => {
-    /* @arrow :: 'a ~> 'a */
+    /* @arrow :: "a ~> "a */
     console.log(x);
     return x;
-}).named('log');
+}).named("log");
 
 Arrow.throwFalse = () => new LiftedArrow(x => {
     /* @arrow :: Bool ~> _ \ ({}, {Bool}) */
     if (x) {
         throw x;
     }
-}).named('throwFalse');
+}).named("throwFalse");
 
 // Repetition helpers
 Arrow.reptop     = () => new LiftedArrow(x => {
     /* @arrow :: _ ~> <loop: _, halt: _> */
-    return Arrow.loop(null)
+    return Arrow.loop(null);
 });
 
 Arrow.repcond    = () => new LiftedArrow((x, f) =>{
-    /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */
-    return f ? Arrow.loop(x) : Arrow.halt(null)
+    /* @arrow :: ("a, Bool) ~> <loop: "a, halt: _> */
+    return f ? Arrow.loop(x) : Arrow.halt(null);
 });
 
 Arrow.repeatTail = () => new LiftedArrow(x => {
-    /* @arrow :: <loop: 'a, halt: 'b> ~> 'a \ ({}, {'b}) */
-    if (x.hasTag('loop')) {
+    /* @arrow :: <loop: "a, halt: "b> ~> "a \ ({}, {"b}) */
+    if (x.hasTag("loop")) {
         return x.value();
     } else {
         throw x.value();
@@ -329,10 +329,10 @@ class TaggedValue {
 }
 
 // Utility Constructors
-Arrow.loop = x => new TaggedValue('loop', x);
-Arrow.halt = x => new TaggedValue('halt', x);
+Arrow.loop = x => new TaggedValue("loop", x);
+Arrow.halt = x => new TaggedValue("halt", x);
 
-var _cancelerId = 0;
+let _cancelerId = 0;
 
 class Progress {
     constructor(canEmit) {
@@ -346,7 +346,7 @@ class Progress {
     }
 
     addCanceler(canceler) {
-        var id = _cancelerId++;
+        let id = _cancelerId++;
         this.cancelers[id] = canceler;
         return id;
     }
@@ -357,7 +357,7 @@ class Progress {
         }
 
         while (this.observers.length > 0) {
-            var observer = this.observers.pop();
+            let observer = this.observers.pop();
 
             if (this.canEmit) {
                 observer();
@@ -366,7 +366,7 @@ class Progress {
     }
 
     cancel() {
-        for (var id in this.cancelers) {
+        for (let id in this.cancelers) {
             if (this.cancelers[id] != null) {
                 this.cancelers[id]();
             }

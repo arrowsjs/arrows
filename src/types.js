@@ -1,6 +1,6 @@
 class Type {
     equals(that) {
-        throw new Error('Equals undefined')
+        throw new Error("Equals undefined");
     }
 
     check(value) {
@@ -28,7 +28,7 @@ class Type {
     }
 }
 
-var uniqid = 0;
+let uniqid = 0;
 
 class ParamType extends Type {
     static fresh(noreduce) {
@@ -71,7 +71,7 @@ class ParamType extends Type {
 
     sanitize(map) {
         if (!(this.id in map)) {
-            var p = ParamType.fresh(this.noreduce);
+            let p = ParamType.fresh(this.noreduce);
             this.children.push(p);
             map[this.id] = p;
         }
@@ -86,28 +86,28 @@ class TopType extends Type {
     }
 
     toString() {
-        return '_';
+        return "_";
     }
 
     check(value) {
     }
 }
 
-var runtimeCheckers = {
-    'Bool'  : v => v === true || v === false,
-    'Number': v => typeof v == "number",
-    'String': v => typeof v == "string",
-    'Elem'  : v => v instanceof jQuery,
-    'Event' : v => false, // TODO
+let runtimeCheckers = {
+    "Bool"  : v => v === true || v === false,
+    "Number": v => typeof v == "number",
+    "String": v => typeof v == "string",
+    "Elem"  : v => v instanceof jQuery,
+    "Event" : v => false, // TODO
 };
 
 function checkNamedType(name, value) {
-    var checker = runtimeCheckers[name];
+    let checker = runtimeCheckers[name];
 
     if (checker) {
         return checker(value);
     } else {
-        throw new Error(`Named type '${name}' does not have an associated checker.`);
+        throw new Error(`Named type "${name}" does not have an associated checker.`);
     }
 }
 
@@ -147,7 +147,7 @@ class SumType extends Type {
     }
 
     toString() {
-        return this.names.join('+');
+        return this.names.join("+");
     }
 
     check(value) {
@@ -173,12 +173,12 @@ class TaggedUnionType extends Type {
     }
 
     toString() {
-        return '<' + this.keys.map(k => k + ': ' + this.vals[k].toString()).join(', ') + '>';
+        return "<" + this.keys.map(k => k + ": " + this.vals[k].toString()).join(", ") + ">";
     }
 
     check(value) {
         try {
-            for (var key in this.keys) {
+            for (let key in this.keys) {
                 if (value.hasTag(key)) {
                     return this.vals[key].check(value.value());
                 }
@@ -199,16 +199,16 @@ class TaggedUnionType extends Type {
     }
 
     substitute(map) {
-        var map = {};
+        let vals = {};
         this.keys.forEach(k => {
-            map[k] = this.vals[k].substitute(map);
+            vals[k] = this.vals[k].substitute(map);
         });
 
-        return new TaggedUnionType(map);
+        return new TaggedUnionType(vals);
     }
 
     sanitize(map) {
-        var vals = {};
+        let vals = {};
         this.keys.forEach(k => {
             vals[k] = this.vals[k].sanitize(map);
         });
@@ -232,7 +232,7 @@ class ArrayType extends Type {
     }
 
     toString() {
-        return '[' + this.type.toString() + ']';
+        return "[" + this.type.toString() + "]";
     }
 
     check(value) {
@@ -275,7 +275,7 @@ class TupleType extends Type {
     }
 
     toString() {
-        return '(' + this.types.map(t => t.toString()).join(', ') + ')';
+        return "(" + this.types.map(t => t.toString()).join(", ") + ")";
     }
 
     check(value) {
@@ -319,7 +319,7 @@ class RecordType extends Type {
     }
 
     toString() {
-        return '{' + this.keys.map(k => k + ': ' + this.vals[k].toString()).join(', ') + '}';
+        return "{" + this.keys.map(k => k + ": " + this.vals[k].toString()).join(", ") + "}";
     }
 
     check(value) {
@@ -341,7 +341,7 @@ class RecordType extends Type {
     }
 
     substitute(map) {
-        var vals = {};
+        let vals = {};
         this.keys.forEach(k => {
             vals[k] = this.vals[k].substitute(map);
         });
@@ -350,7 +350,7 @@ class RecordType extends Type {
     }
 
     sanitize(map) {
-        var vals = {};
+        let vals = {};
         this.keys.forEach(k => {
             vals[k] = this.vals[k].sanitize(map);
         });
