@@ -60,15 +60,15 @@ class Constraint {
         }
 
         if (this.lower instanceof TupleType && this.upper instanceof TupleType) {
-            return this.upper.types.map((t, i) => new Constraint(this.lower.types[i], t));
+            return this.upper.types.filter((t, i) => i < this.lower.types.length).map((t, i) => new Constraint(this.lower.types[i], t));
         }
 
         if (this.lower instanceof TaggedUnionType && this.upper instanceof TaggedUnionType) {
-            return this.lower.keys.map(k => new Constraint(this.lower.vals[k], this.upper.vals[k]));
+            return this.lower.keys.filter(k => this.upper.keys.indexOf(k) >= 0).map(k => new Constraint(this.lower.vals[k], this.upper.vals[k]));
         }
 
         if (this.lower instanceof RecordType && this.upper instanceof RecordType) {
-            return this.upper.keys.map(k => new Constraint(this.lower.vals[k], this.upper.vals[k]));
+            return this.upper.keys.filter(k => this.lower.keys.indexOf(k) >= 0).map(k => new Constraint(this.lower.vals[k], this.upper.vals[k]));
         }
 
         return [];
