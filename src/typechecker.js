@@ -306,8 +306,8 @@ class ArrowType {
         });
 
         let [n, p] = this.polarity();
-        let neglet = n.filter(v => !p.some(x => x.equals(v))); // negative-only params
-        let poslet = p.filter(v => !n.some(x => x.equals(v))); // positive-only params
+        let negVar = n.filter(v => !p.some(x => x.equals(v))); // negative-only params
+        let posVar = p.filter(v => !n.some(x => x.equals(v))); // positive-only params
 
         // Replace negative variables by their sole upper bound, if it exists
         negVar.map(p => cs.filter(c => c.lower === p)).filter(cs => cs.length === 1).forEach(c => {
