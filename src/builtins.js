@@ -13,11 +13,12 @@ class LiftedArrow extends Arrow {
             let i = s.indexOf("/*");
             let j = s.indexOf("*/", i + 1);
             let c = s.substring(i + 2, j);
-
-            if (annotationCache[c] !== undefined) {
-                let parsed = annotationCache[c];
-            } else {
+            
+            let parsed = annotationCache[c];
+            
+            if (annotationCache[c] === undefined) {
                 let comment;
+                
                 try {
                     comment = c.match(/\@arrow :: (.*)\n?/)[1];
                 } catch (err) {
