@@ -225,7 +225,7 @@ class Arrow {
         });
 
         let rep = new LiftedArrow((n, x, y) => {
-            /* @arrow :: (Number, "a, "b) ~> <loop: (Number, "a, "a), halt: "b> */
+            /* @arrow :: (Number, 'a, 'b) ~> <loop: (Number, 'a, 'a), halt: 'b> */
             return n > 1 ? Arrow.loop([n - 1, x, x]) : Arrow.halt(y);
         });
 
@@ -276,12 +276,12 @@ Arrow.db     = (f, db)    => new QueryArrow(f, db);
 
 // Built-ins
 Arrow.id  = () => new LiftedArrow(x => {
-    /* @arrow :: "a ~> "a */
+    /* @arrow :: 'a ~> 'a */
     return x;
 }).named("id");
 
 Arrow.log = () => new LiftedArrow(x => {
-    /* @arrow :: "a ~> "a */
+    /* @arrow :: 'a ~> 'a */
     console.log(x);
     return x;
 }).named("log");
@@ -300,12 +300,12 @@ Arrow.reptop     = () => new LiftedArrow(x => {
 });
 
 Arrow.repcond    = () => new LiftedArrow((x, f) =>{
-    /* @arrow :: ("a, Bool) ~> <loop: "a, halt: _> */
+    /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */
     return f ? Arrow.loop(x) : Arrow.halt(null);
 });
 
 Arrow.repeatTail = () => new LiftedArrow(x => {
-    /* @arrow :: <loop: "a, halt: "b> ~> "a \ ({}, {"b}) */
+    /* @arrow :: <loop: 'a, halt: 'b> ~> 'a \ ({}, {'b}) */
     if (x.hasTag("loop")) {
         return x.value();
     } else {
