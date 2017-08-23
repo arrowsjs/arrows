@@ -113,6 +113,10 @@ class Arrow {
     }
 
     run() {
+        if (!(this.type.arg instanceof TopType)) {
+            throw Exception('Cannot run an arrow that takes arguments')
+        }
+
         var p = new Progress(true);
         this.call(null, p, () => {}, err => { throw err; });
         return p;
