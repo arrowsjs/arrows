@@ -457,7 +457,7 @@ function getNonNullElems(arrows) {
 
 function ensureArrow(arrow) {
     if (!(arrow instanceof Arrow)) {
-        throw new ComposeError("Passed non-arrow to combinator");
+        throw new ComposeError(`Passed non-arrow (${JSON.stringify(arrow)}) to combinator`);
     }
 }
 
