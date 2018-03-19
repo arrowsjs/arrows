@@ -418,8 +418,8 @@ function lub(a, b) {
 
     if (a instanceof TaggedUnionType && b instanceof TaggedUnionType) {
         var map = {};
-        b.labels().filter(k => a.labels().indexOf(k) >= 0).forEach(k => {
-            map[k] = lub(a.typeMap[k], b.typeMap[k]);
+        b.keys.filter(k => a.keys.indexOf(k) >= 0).forEach(k => {
+            map[k] = lub(a.vals[k], b.vals[k]);
         });
 
         return new TaggedUnionType(map);
