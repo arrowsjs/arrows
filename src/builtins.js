@@ -1,31 +1,32 @@
-var annotationCache = {};
+let annotationCache = {};
 
 class LiftedArrow extends Arrow {
     constructor(f) {
         if (!(f instanceof Function)) {
-            throw new Error('Cannot lift non-function');
+            throw new Error("Cannot lift non-function");
         }
 
         super(_construct(() => {
-            var start = window.performance.now();
+            let start = window.performance.now();
 
-            var s = f.toString();
-            var i = s.indexOf('/*');
-            var j = s.indexOf('*/', i + 1);
-            var c = s.substring(i + 2, j);
-
-            if (annotationCache[c] !== undefined) {
-                var parsed = annotationCache[c];
-            } else {
-                var comment;
+            let s = f.toString();
+            let i = s.indexOf("/*");
+            let j = s.indexOf("*/", i + 1);
+            let c = s.substring(i + 2, j);
+            
+            let parsed = annotationCache[c];
+            
+            if (annotationCache[c] === undefined) {
+                let comment;
+                
                 try {
-                    comment = c.match(/\@arrow :: (.*)\n?/)[1]
+                    comment = c.match(/\@arrow :: (.*)\n?/)[1];
                 } catch (err) {
                     if (typecheck) {
-                        console.warn('Function being lifted does not contain an @arrow annotation');
+                        console.warn("Function being lifted does not contain an @arrow annotation");
                     }
 
-                    comment = '_ ~> _';
+                    comment = "_ ~> _";
                 }
 
                 try {
@@ -38,13 +39,13 @@ class LiftedArrow extends Arrow {
                 annotationCache[c] = parsed;
             }
 
-            var elapsed = window.performance.now() - start;
+            let elapsed = window.performance.now() - start;
             numannotations++;
             annotationParseTime += elapsed;
 
-            var arg = parsed[0];
-            var out = parsed[1];
-            var ncs = new ConstraintSet([]).addAll(parsed[2][0]);
+            let arg = parsed[0];
+            let out = parsed[1];
+            let ncs = new ConstraintSet([]).addAll(parsed[2][0]);
 
             return new ArrowType(arg, out, ncs, parsed[2][1]).sanitize();
         }));
@@ -53,19 +54,21 @@ class LiftedArrow extends Arrow {
     }
 
     toString() {
-        return 'lift :: ' + this.type.toString();
+        return "lift :: " + this.type.toString();
     }
 
     call(x, p, k, h) {
+        let result;
+
         try {
             // If the function has more than one parameter and we have
             // an array argument, spread the elements. Else, just call
             // the function with a single argument.
-
+            
             if (x && x.constructor === Array && this.f.length > 1) {
-                var result = this.f.apply(null, x);
+                result = this.f.apply(null, x);
             } else {
-                var result = this.f(x);
+                result = this.f(x);
             }
 
             _check(this.type.out, result);
@@ -92,7 +95,7 @@ class ElemArrow extends LiftedArrow {
     }
 
     toString() {
-        return 'elem :: ' + this.type.toString();
+        return "elem :: " + this.type.toString();
     }
 
     equals(that) {
@@ -114,45 +117,52 @@ class SimpleAsyncArrow extends Arrow {
 
 class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
     constructor(f, errorType) {
+        if (!(f instanceof Function)) {
+            throw new Error("Cannot use non-function as configuration value");
+        }
+
         super(_construct(() => {
-            var start = window.performance.now();
+            let start = window.performance.now();
 
-            var s = f.toString();
-            var i = s.indexOf('/*');
-            var j = s.indexOf('*/', i + 1);
-            var c = s.substring(i + 2, j);
+            let s = f.toString();
+            let i = s.indexOf("/*");
+            let j = s.indexOf("*/", i + 1);
+            let c = s.substring(i + 2, j);
 
-            var ncs = new ConstraintSet([]);
-            var err = [new NamedType(errorType)];
+            let ncs = new ConstraintSet([]);
+            let err = [new NamedType(errorType)];
+
+            let conf;
+            let resp;
 
             if (annotationCache[c] !== undefined) {
-                var conf = annotationCache[c][0];
-                var resp = annotationCache[c][1];
+                conf = annotationCache[c][0];
+                resp = annotationCache[c][1];
             } else {
                 try {
                     // jison exports the parser name like this
-                    var conf = parser.parse(c.match(/\@conf :: (.*)\n?/)[1]);
+                    conf = parser.parse(c.match(/\@conf :: (.*)\n?/)[1]);
 
                     ncs = ncs.addAll(conf[1][0]);
                     err = err.concat(conf[1][1]);
                 } catch (err) {
-                    throw new ComposeError(`Config does not contain a parseable @conf annotation.\n${err.message}\n`)
+                    throw new ComposeError(`Config does not contain a parseable @conf annotation.\n${err.message}\n`);
                 }
 
                 try {
                     // jison exports the parser name like this
-                    var resp = parser.parse(c.match(/\@resp :: (.*)\n?/)[1]);
+                    resp = parser.parse(c.match(/\@resp :: (.*)\n?/)[1]);
 
                     ncs = ncs.addAll(resp[1][0]);
                     err = err.concat(resp[1][1]);
                 } catch (err) {
-                    throw new ComposeError(`Config does not contain a parseable @resp annotation.\n${err.message}\n`)
+                    throw new ComposeError(`Config does not contain a parseable @resp annotation.\n${err.message}\n`);
                 }
 
                 annotationCache[c] = [conf, resp];
             }
 
-            var elapsed = window.performance.now() - start;
+            let elapsed = window.performance.now() - start;
             numannotations++;
             annotationParseTime += elapsed;
 
@@ -165,11 +175,11 @@ class SimpleConfigBasedAsyncArrow extends SimpleAsyncArrow {
 
 class AjaxArrow extends SimpleConfigBasedAsyncArrow {
     constructor(f) {
-        super(f, 'AjaxError');
+        super(f, "AjaxError");
     }
 
     toString() {
-        return 'ajax :: ' + this.type.toString();
+        return "ajax :: " + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -179,17 +189,18 @@ class AjaxArrow extends SimpleConfigBasedAsyncArrow {
 
         // TODO - wrap this in try
 
+        let conf;
         if (x && x.constructor === Array && this.c.length > 1) {
-            var conf = this.c.apply(null, x);
+            conf = this.c.apply(null, x);
         } else {
-            var conf = this.c(x);
+            conf = this.c(x);
         }
 
         let abort = false;
 
         const cancel = () => {
             abort = true;
-        }
+        };
 
         const fail = h;
         const succ = x => {
@@ -202,7 +213,7 @@ class AjaxArrow extends SimpleConfigBasedAsyncArrow {
             error  : (xhr, status, x) => { if (!abort) { p.advance(cancelerId); fail(x); } },
         }));
 
-        var cancelerId = p.addCanceler(cancel);
+        let cancelerId = p.addCanceler(cancel);
     }
 
     equals(that) {
@@ -213,19 +224,20 @@ class AjaxArrow extends SimpleConfigBasedAsyncArrow {
 
 class QueryArrow extends SimpleConfigBasedAsyncArrow {
     constructor(f, db) {
-        super(f, 'QueryError');
+        super(f, "QueryError");
         this.db = db;
     }
 
     toString() {
-        return 'query :: ' + this.type.toString();
+        return "query :: " + this.type.toString();
     }
 
     call(x, p, k, h) {
+        let conf;
         if (x && x.constructor === Array && this.c.length > 1) {
-            var conf = this.c.apply(null, x);
+            conf = this.c.apply(null, x);
         } else {
-            var conf = this.c(x);
+            conf = this.c(x);
         }
 
         let abort = false;
@@ -254,7 +266,7 @@ class QueryArrow extends SimpleConfigBasedAsyncArrow {
             }
         });
 
-        var cancelerId = p.addCanceler(cancel);
+        let cancelerId = p.addCanceler(cancel);
     }
 
     equals(that) {
@@ -266,12 +278,12 @@ class QueryArrow extends SimpleConfigBasedAsyncArrow {
 class EventArrow extends SimpleAsyncArrow {
     constructor(name) {
         // Elem ~> Event
-        super(_construct(() => new ArrowType(new NamedType('Elem'), new NamedType('Event'))));
+        super(_construct(() => new ArrowType(new NamedType("Elem"), new NamedType("Event"))));
         this.name = name;
     }
 
     toString() {
-        return 'event(' + this.name + ') :: ' + this.type.toString();
+        return "event(" + this.name + ") :: " + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -291,7 +303,7 @@ class EventArrow extends SimpleAsyncArrow {
         };
 
         x.on(this.name, runner);
-        var cancelerId = p.addCanceler(cancel);
+        let cancelerId = p.addCanceler(cancel);
     }
 
     equals(that) {
@@ -303,12 +315,12 @@ class DynamicDelayArrow extends SimpleAsyncArrow {
     constructor() {
         // Number ~> _
         super(_construct(() => {
-            return new ArrowType(new NamedType('Number'), new TopType());
+            return new ArrowType(new NamedType("Number"), new TopType());
         }));
     }
 
     toString() {
-        return 'delay :: ' + this.type.toString();
+        return "delay :: " + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -318,8 +330,8 @@ class DynamicDelayArrow extends SimpleAsyncArrow {
             k();
         };
 
-        var timer = setTimeout(runner, x);
-        var cancelerId = p.addCanceler(cancel);
+        let timer = setTimeout(runner, x);
+        let cancelerId = p.addCanceler(cancel);
     }
 
     equals(that) {
@@ -329,9 +341,9 @@ class DynamicDelayArrow extends SimpleAsyncArrow {
 
 class DelayArrow extends SimpleAsyncArrow {
     constructor(duration) {
-        // 'a ~> 'a
+        // "a ~> "a
         super(_construct(() => {
-            var alpha = ParamType.fresh();
+            let alpha = ParamType.fresh();
             return new ArrowType(alpha, alpha);
         }));
 
@@ -339,7 +351,7 @@ class DelayArrow extends SimpleAsyncArrow {
     }
 
     toString() {
-        return 'delay(' + this.duration + ') :: ' + this.type.toString();
+        return "delay(" + this.duration + ") :: " + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -349,8 +361,8 @@ class DelayArrow extends SimpleAsyncArrow {
             k(x);
         };
 
-        var timer = setTimeout(runner, this.duration);
-        var cancelerId = p.addCanceler(cancel);
+        let timer = setTimeout(runner, this.duration);
+        let cancelerId = p.addCanceler(cancel);
     }
 
     equals(that) {
@@ -365,8 +377,8 @@ class DelayArrow extends SimpleAsyncArrow {
 class SplitArrow extends Arrow {
     constructor(n) {
         super(_construct(() => {
-            var arg = ParamType.fresh();
-            var out = Array.create(n, arg);
+            let arg = ParamType.fresh();
+            let out = Array.create(n, arg);
 
             return new ArrowType(arg, new TupleType(out));
         }));
@@ -375,7 +387,7 @@ class SplitArrow extends Arrow {
     }
 
     toString() {
-        return 'split(' + this.n + ') :: ' + this.type.toString();
+        return "split(" + this.n + ") :: " + this.type.toString();
     }
 
     call(x, p, k, h) {
@@ -391,8 +403,8 @@ class SplitArrow extends Arrow {
 class NthArrow extends Arrow {
     constructor(n) {
         super(_construct(() => {
-            var arg = Array.create(n).map(() => ParamType.fresh());
-            var out = arg[n - 1];
+            let arg = Array.create(n).map(() => ParamType.fresh());
+            let out = arg[n - 1];
 
             return new ArrowType(new TupleType(arg), out);
         }));
@@ -401,7 +413,7 @@ class NthArrow extends Arrow {
     }
 
     toString() {
-        return 'nth(' + this.n + ') :: ' + this.type.toString();
+        return "nth(" + this.n + ") :: " + this.type.toString();
     }
 
     call(x, p, k, h) {

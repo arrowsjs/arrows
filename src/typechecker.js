@@ -7,7 +7,7 @@ class TypeClash extends Error {
     }
 
     toString() {
-        return `Runtime type assertion failure: Expected ${this.type.toString()}', got '${JSON.stringify(this.value)}'.`;
+        return `Runtime type assertion failure: Expected ${this.type.toString()}", got "${JSON.stringify(this.value)}".`;
     }
 }
 
@@ -26,7 +26,7 @@ class Constraint {
     }
 
     toString() {
-        return this.lower.toString() + ' <= ' + this.upper.toString();
+        return this.lower.toString() + " <= " + this.upper.toString();
     }
 
     isUseless() {
@@ -34,13 +34,13 @@ class Constraint {
     }
 
     isConsistent() {
-        var a = this.lower;
-        var b = this.upper;
+        let a = this.lower;
+        let b = this.upper;
 
         if (a instanceof NamedType || a instanceof SumType) {
             if (b instanceof NamedType || b instanceof SumType) {
-                var na = (a instanceof NamedType) ? [a] : a.names;
-                var nb = (b instanceof NamedType) ? [b] : b.names;
+                let na = (a instanceof NamedType) ? [a] : a.names;
+                let nb = (b instanceof NamedType) ? [b] : b.names;
 
                 return na.every(t1 => nb.some(t2 => t1.equals(t2)));
             }
@@ -60,15 +60,15 @@ class Constraint {
         }
 
         if (this.lower instanceof TupleType && this.upper instanceof TupleType) {
-            return this.upper.types.map((t, i) => new Constraint(this.lower.types[i], t));
+            return this.upper.types.filter((t, i) => i < this.lower.types.length).map((t, i) => new Constraint(this.lower.types[i], t));
         }
 
         if (this.lower instanceof TaggedUnionType && this.upper instanceof TaggedUnionType) {
-            return this.lower.keys.map(k => new Constraint(this.lower.vals[k], this.upper.vals[k]));
+            return this.lower.keys.filter(k => this.upper.keys.indexOf(k) >= 0).map(k => new Constraint(this.lower.vals[k], this.upper.vals[k]));
         }
 
         if (this.lower instanceof RecordType && this.upper instanceof RecordType) {
-            return this.upper.keys.map(k => new Constraint(this.lower.vals[k], this.upper.vals[k]));
+            return this.upper.keys.filter(k => this.lower.keys.indexOf(k) >= 0).map(k => new Constraint(this.lower.vals[k], this.upper.vals[k]));
         }
 
         return [];
@@ -90,16 +90,16 @@ class Constraint {
 class ConstraintSet {
     constructor(constraints) {
         this.constraints = constraints.filter(c => !c.isUseless());
-        var inconsistent = constraints.filter(c => !c.isConsistent());
+        let inconsistent = constraints.filter(c => !c.isConsistent());
 
         if (inconsistent.length != 0) {
-            throw new Error('Inconsistent constraints: [' + inconsistent.map(c => c.toString()).join(', ') + ']');
+            throw new Error("Inconsistent constraints: [" + inconsistent.map(c => c.toString()).join(", ") + "]");
         }
     }
 
     equals(that) {
         if (this.constraints.length == that.constraints.length) {
-            for (var i = 0; i < this.constraints.length; i++) {
+            for (let i = 0; i < this.constraints.length; i++) {
                 if (!this.contains(this.constraints[i])) {
                     return false;
                 }
@@ -112,7 +112,7 @@ class ConstraintSet {
     }
 
     contains(constraint) {
-        for (var i = 0; i < this.constraints.length; i++) {
+        for (let i = 0; i < this.constraints.length; i++) {
             if (this.constraints[i].equals(constraint)) {
                 return true;
             }
@@ -122,7 +122,7 @@ class ConstraintSet {
     }
 
     toString() {
-        return '{' + this.constraints.map(c => c.toString()).join(', ') + '}';
+        return "{" + this.constraints.map(c => c.toString()).join(", ") + "}";
     }
 
     add(constraint) {
@@ -171,27 +171,27 @@ class ArrowType {
     }
 
     toString() {
-        var type = this.arg.toString() + ' ~> ' + this.out.toString();
+        let type = this.arg.toString() + " ~> " + this.out.toString();
 
         if (this.constraints.constraints.length > 0 || this.errors.length > 0) {
-            type += ' \\ (';
+            type += " \\ (";
             type += this.constraints.toString();
-            type += ', {';
-            type += this.errors.map(t => t.toString()).join(', ');
-            type += '})';
+            type += ", {";
+            type += this.errors.map(t => t.toString()).join(", ");
+            type += "})";
         }
 
         return type;
     }
 
     resolve() {
-        var initial = this.constraints;
+        let initial = this.constraints;
 
         while (true) {
             this.constraints = this.closure();
             this.constraints = this.mergeConcreteBounds();
 
-            var map = this.collectBounds();
+            let map = this.collectBounds();
 
             if (Object.getOwnPropertyNames(map).length === 0) {
                 break;
@@ -200,7 +200,7 @@ class ArrowType {
             this.substitute(map);
         }
 
-        var cs = this.prune();
+        let cs = this.prune();
 
         if (cs.constraints.length === this.constraints.constraints.length || initial.equals(cs)) {
             return;
@@ -222,11 +222,11 @@ class ArrowType {
      * the set until no new constraints are produced (a fixed point reached).
      */
     closure() {
-        var cs = [];
-        var wl = Array.copy(this.constraints.constraints);
+        let cs = [];
+        let wl = Array.copy(this.constraints.constraints);
 
         while (wl.length > 0) {
-            var w = wl.pop();
+            let w = wl.pop();
 
             if (!cs.some(c => c.equals(w))) {
                 w.unary().forEach(c => wl.push(c));
@@ -247,21 +247,25 @@ class ArrowType {
      * type with the lub or glb, respectively, of the concrete bound.
      */
     mergeConcreteBounds() {
-        var idmap = {};
-        var lower = {};
-        var upper = {};
-        var other = [];
+        let idmap = {};
+        let lower = {};
+        let upper = {};
+        let other = [];
 
         for (let c of this.constraints.constraints) {
-            var a = c.lower;
-            var b = c.upper;
+            let a = c.lower;
+            let b = c.upper;
 
             if (a.isParam()) idmap[a.id] = a;
             if (b.isParam()) idmap[b.id] = b;
 
-                 if (a.isParam() && b.isConcrete()) lower[a.id] = (a.id in lower) ? glb(lower[a.id], b) : b;
-            else if (b.isParam() && a.isConcrete()) upper[b.id] = (b.id in upper) ? lub(upper[b.id], a) : a;
-            else                                    other.push(c);
+            if (a.isParam() && b.isConcrete()) {
+                lower[a.id] = (a.id in lower) ? glb(lower[a.id], b) : b;
+            } else if (b.isParam() && a.isConcrete()) {
+                upper[b.id] = (b.id in upper) ? lub(upper[b.id], a) : a;
+            } else {
+                other.push(c);
+            }
         }
 
         if (lower.length === 0 && upper.length === 0) {
@@ -283,15 +287,15 @@ class ArrowType {
      *    - t <= p^+ (and t is sole lower bound of p)
      */
     collectBounds() {
-        var map = {};
+        let map = {};
 
         function addToMap(p, t) {
             map[p.id] = (t.isParam() && t.id in map) ? map[t.id] : t;
         }
 
-        var cs = this.constraints.constraints;
-        var lowerParam = cs.filter(c => c.lower.isParam() && !c.lower.noreduce);
-        var upperParam = cs.filter(c => c.upper.isParam() && !c.upper.noreduce);
+        let cs = this.constraints.constraints;
+        let lowerParam = cs.filter(c => c.lower.isParam() && !c.lower.noreduce);
+        let upperParam = cs.filter(c => c.upper.isParam() && !c.upper.noreduce);
 
         lowerParam.forEach(c1 => {
             upperParam.forEach(c2 => {
@@ -301,9 +305,9 @@ class ArrowType {
             });
         });
 
-        var [n, p] = this.polarity();
-        var negVar = n.filter(v => !p.some(x => x.equals(v))); // negative-only params
-        var posVar = p.filter(v => !n.some(x => x.equals(v))); // positive-only params
+        let [n, p] = this.polarity();
+        let negVar = n.filter(v => !p.some(x => x.equals(v))); // negative-only params
+        let posVar = p.filter(v => !n.some(x => x.equals(v))); // positive-only params
 
         // Replace negative variables by their sole upper bound, if it exists
         negVar.map(p => cs.filter(c => c.lower === p)).filter(cs => cs.length === 1).forEach(c => {
@@ -328,7 +332,7 @@ class ArrowType {
      */
     prune() {
         let [n, p] = this.polarity();
-        var params = this.arg.harvest().concat(this.out.harvest()).concat(this.errors);
+        let params = this.arg.harvest().concat(this.out.harvest()).concat(this.errors);
 
         return new ConstraintSet(this.constraints.constraints.filter(c => {
             // Keep no-reduce parameters
@@ -358,18 +362,18 @@ class ArrowType {
      * arg or out then it will be absent from both lists.
      */
     polarity() {
-        var neg = this.arg.harvest();
-        var pos = this.out.harvest().concat(this.errors);
+        let neg = this.arg.harvest();
+        let pos = this.out.harvest().concat(this.errors);
 
-        var changed = true;
-        var negDefs = this.constraints.constraints.filter(c => c.lower.isParam()).map(c => [c.lower, c.upper.harvest()]);
-        var posDefs = this.constraints.constraints.filter(c => c.upper.isParam()).map(c => [c.upper, c.lower.harvest()]);
+        let changed = true;
+        let negDefs = this.constraints.constraints.filter(c => c.lower.isParam()).map(c => [c.lower, c.upper.harvest()]);
+        let posDefs = this.constraints.constraints.filter(c => c.upper.isParam()).map(c => [c.upper, c.lower.harvest()]);
 
         while (changed) {
             changed = false;
 
-            var extraNeg = negDefs.filter(([a, b]) => neg.some(p => p === a)).reduce((c, [a, b]) => c.concat(b), []).filter(x => !neg.some(p => p === x));
-            var extraPos = posDefs.filter(([a, b]) => pos.some(p => p === a)).reduce((c, [a, b]) => c.concat(b), []).filter(x => !pos.some(p => p === x));
+            let extraNeg = negDefs.filter(([a, b]) => neg.some(p => p === a)).reduce((c, [a, b]) => c.concat(b), []).filter(x => !neg.some(p => p === x));
+            let extraPos = posDefs.filter(([a, b]) => pos.some(p => p === a)).reduce((c, [a, b]) => c.concat(b), []).filter(x => !pos.some(p => p === x));
 
             if (extraNeg.length > 0 || extraPos.length > 0) {
                 changed = true;
@@ -382,11 +386,11 @@ class ArrowType {
     }
 
     sanitize() {
-        var map = {};
-        var arg = this.arg.sanitize(map);
-        var out = this.out.sanitize(map);
-        var constraints = this.constraints.sanitize(map);
-        var errors = this.errors.map(e => e.sanitize(map));
+        let map = {};
+        let arg = this.arg.sanitize(map);
+        let out = this.out.sanitize(map);
+        let constraints = this.constraints.sanitize(map);
+        let errors = this.errors.map(e => e.sanitize(map));
 
         return new ArrowType(arg, out, constraints, errors);
     }
@@ -407,9 +411,9 @@ function lub(a, b) {
 
     if (a instanceof NamedType || a instanceof SumType) {
         if (b instanceof NamedType || b instanceof SumType) {
-            var na = (a instanceof NamedType) ? [a] : a.names;
-            var nb = (b instanceof NamedType) ? [b] : b.names;
-            var nu = na.concat(nb.filter(n => na.indexOf(n) < 0));
+            let na = (a instanceof NamedType) ? [a] : a.names;
+            let nb = (b instanceof NamedType) ? [b] : b.names;
+            let nu = na.concat(nb.filter(n => na.indexOf(n) < 0));
 
             if (nu.length == 1) return new NamedType(nu[0]);
             if (nu.length >= 2) return new SumType(nu);
@@ -417,7 +421,7 @@ function lub(a, b) {
     }
 
     if (a instanceof TaggedUnionType && b instanceof TaggedUnionType) {
-        var map = {};
+        let map = {};
         b.keys.filter(k => a.keys.indexOf(k) >= 0).forEach(k => {
             map[k] = lub(a.vals[k], b.vals[k]);
         });
@@ -436,7 +440,7 @@ function lub(a, b) {
     }
 
     if (a instanceof RecordType && b instanceof RecordType) {
-        var map = {};
+        let map = {};
         a.keys.filter(k => b.keys.indexOf(k) >= 0).forEach(k => {
             map[k] = lub(a.vals[k], b.vals[k]);
         });
@@ -457,9 +461,9 @@ function glb(a, b) {
 
     if (a instanceof NamedType || a instanceof SumType) {
         if (b instanceof NamedType || b instanceof SumType) {
-            var na = (a instanceof NamedType) ? [a] : a.names;
-            var nb = (b instanceof NamedType) ? [b] : b.names;
-            var ni = na.filter(t1 => nb.some(t2 => t1 === t2));
+            let na = (a instanceof NamedType) ? [a] : a.names;
+            let nb = (b instanceof NamedType) ? [b] : b.names;
+            let ni = na.filter(t1 => nb.some(t2 => t1 === t2));
 
             if (ni.length == 1) return new NamedType(ni[0]);
             if (ni.length >= 2) return new SumType(ni);
@@ -477,7 +481,7 @@ function glb(a, b) {
     }
 
     if (a instanceof TaggedUnionType && b instanceof TaggedUnionType) {
-        var map = {};
+        let map = {};
         a.keys.forEach(k => { map[k] = (k in map) ? glb(map[k], a.vals[k]) : a.vals[k]; });
         b.keys.forEach(k => { map[k] = (k in map) ? glb(map[k], b.vals[k]) : b.vals[k]; });
 
@@ -485,12 +489,12 @@ function glb(a, b) {
     }
 
     if (a instanceof RecordType && b instanceof RecordType) {
-        var map = {};
+        let map = {};
         a.keys.forEach(k => { map[k] = (k in map) ? glb(map[k], a.vals[k]) : a.vals[k]; });
         b.keys.forEach(k => { map[k] = (k in map) ? glb(map[k], b.vals[k]) : b.vals[k]; });
 
         return new RecordType(map);
     }
 
-    throw new Error(`No greatest lower bound of '${a.toString()}' and '${b.toString()}'.`);
+    throw new Error(`No greatest lower bound of "${a.toString()}" and "${b.toString()}".`);
 }

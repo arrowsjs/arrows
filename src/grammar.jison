@@ -92,10 +92,9 @@ bound_tail
 
 function pairsToMap(pairs) {
     var map = {};
-
     pairs.forEach(function(k) {
         if (k[0] in map) {
-            throw 'Duplicate key in record type.'
+            throw new Error("Duplicate key in record type.");
         }
 
         map[k[0]] = k[1];

@@ -20,8 +20,8 @@ A JavaScript function can be *lifted* into an arrow. This can be done either by 
 a `LiftedArrow`, or calling the `lift` function.
 
 ```javascript
-var a = new LiftedArrow(fn);
-var b = fn.lift();
+let a = new LiftedArrow(fn);
+let b = fn.lift();
 ```
 
 Multiple arrows can be composed together to build a state machine that will respond to
@@ -34,7 +34,7 @@ will return a new progress object. The execution of an arrow can be stopped by c
 the `cancel` method on the progress object.
 
 ```javascript
-var p = arrow.run();
+let p = arrow.run();
 p.cancel();
 ```
 
@@ -58,7 +58,7 @@ the lifted function of the following form. The type of an arrow requires, at a m
 the input type and the return type.
 
 ```javascript
-var arr = function(a, b, c) {
+let arr = function(a, b, c) {
     /* @arrow :: (Bool, Number, Number) ~> Number */
     return a ? b * c : b + c;
 }
@@ -84,7 +84,7 @@ A **tagged** value can be created in the following way. A tagged value can be qu
 for its tag (e.g. `v.hasTag("foo")`) and can unwrap its value (e.g. `v.value()`).
 
 ```javascript
-var arr = function(i) {
+let arr = function(i) {
     /* @arrow :: Number ~> <foo: String, bar: Int, baz: _> */
     if (i % 2 == 0) { return new TaggedValue("foo", "" + i); }
     if (i % 3 == 0) { return new TaggedValue("bar", i * 27); }
@@ -98,7 +98,7 @@ A type may also have a set of **constraints** and a set of **exception types**. 
 user supplies them, then they are annotated in the following form.
 
 ```javascript
-var arr = function(x, y) {
+let arr = function(x, y) {
     /* @arrow :: ('a, 'a) ~> 'b \ ({'a <= Number+String, 'b <= 'a}, {MathError}) */
     if (x == 42) { throw new MathError('Forbidden value for x.'); }
     else         { return x + y; }
@@ -117,12 +117,12 @@ less specific type) of the annotated return value. For example, the following co
 is legal.
 
 ```javascript
-var arr1 = (function() {
+let arr1 = (function() {
     /** @arrow :: _ ~> (Number, String, Bool) */
     return [10, "foo", false];
 }).lift();
 
-var arr2 = (function(a, b) {
+let arr2 = (function(a, b) {
     /** @arrow :: (Number, 'a) ~> 'a */
     return b;
 }).lift();
@@ -141,8 +141,8 @@ construction. The value returned is a jQuery object, not a raw DOM object. This 
 ignores its input. This arrow is synchronous.
 
 ```javascript
-var elem1 = new ElemArrow('#byIdent');
-var elem2 = new ElemArrow('.byClass');
+let elem1 = new ElemArrow('#byIdent');
+let elem2 = new ElemArrow('.byClass');
 ```
 
 #### Event
@@ -183,7 +183,7 @@ configuration function, and the expected response from the server. Similarly to 
 functions, this is done by adding a comment of the following form.
 
 ```javascript
-var ajax = new AjaxArrow(function(searchTerm) {
+let ajax = new AjaxArrow(function(searchTerm) {
     /**
      * @conf :: String
      * @resp :: [{name: String, price: Number}]
@@ -277,12 +277,12 @@ the resulting arrow is asynchronous, regardless if the wrapped arrow was asynchr
 not.
 
 ```javascript
-var a1 = Arrow.any([
+let a1 = Arrow.any([
     new DelayArrow(5000),
     Arrow.all([click1, click2, click3])
 ]);
 
-var a2 = Arrow.any([
+let a2 = Arrow.any([
     new DelayArrow(5000),
     Arrow.all([click1, click2, click3]).noemit()
 ]);
