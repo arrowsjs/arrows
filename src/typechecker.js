@@ -41,7 +41,6 @@ class Constraint {
             if (b instanceof NamedType || b instanceof SumType) {
                 let na = (a instanceof NamedType) ? [a] : a.names;
                 let nb = (b instanceof NamedType) ? [b] : b.names;
-
                 return na.every(t1 => nb.some(t2 => t1.equals(t2)));
             }
         }
@@ -463,7 +462,7 @@ function glb(a, b) {
         if (b instanceof NamedType || b instanceof SumType) {
             let na = (a instanceof NamedType) ? [a] : a.names;
             let nb = (b instanceof NamedType) ? [b] : b.names;
-            let ni = na.filter(t1 => nb.some(t2 => t1 === t2));
+            let ni = na.filter(t1 => nb.some(t2 => t1.equals(t2)));
 
             if (ni.length == 1) return new NamedType(ni[0]);
             if (ni.length >= 2) return new SumType(ni);
