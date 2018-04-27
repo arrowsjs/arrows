@@ -258,24 +258,24 @@ class Arrow {
 Arrow.noemit = arrow => new NoEmitCombinator(arrow);
 
 // N-ary combinators
-Arrow.seq    = arrows    => new SeqCombinator(arrows);
-Arrow.any    = arrows    => new AnyCombinator(arrows);
-Arrow.all    = arrows    => new AllCombinator(arrows);
-Arrow.try    = (a, s, f) => new TryCombinator(a, s, f);
-Arrow.fanout = arrows    => {
+Arrow.seq = arrows => new SeqCombinator(arrows);
+Arrow.any = arrows => new AnyCombinator(arrows);
+Arrow.all = arrows => new AllCombinator(arrows);
+Arrow.try = (a, s, f) => new TryCombinator(a, s, f);
+Arrow.fanout = arrows => {
     arrows = getNonNullArrows(arrows);
     let result = new SplitArrow(arrows.length).seq(Arrow.all(arrows));
     return new NamedArrow("fanout(" + arrows.map(a => a.toString()).join(", " ) + ")", result, arrows);
 };
 
 // Convenience
-Arrow.repeat = a          => a.repeat();
-Arrow.bind   = (event, a) => new NamedArrow("bind(" + event + ", {0})", Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
-Arrow.catch  = (a, f)     => Arrow.try(a, Arrow.id(), f);
-Arrow.db     = (f, db)    => new QueryArrow(f, db);
+Arrow.repeat = a => a.repeat();
+Arrow.bind = (event, a) => new NamedArrow("bind(" + event + ", {0})", Arrow.seq([new SplitArrow(2), Arrow.id().all(new EventArrow(event)), a]), [a]);
+Arrow.catch = (a, f) => Arrow.try(a, Arrow.id(), f);
+Arrow.db = (f, db) => new QueryArrow(f, db);
 
 // Built-ins
-Arrow.id  = () => new LiftedArrow(x => {
+Arrow.id = () => new LiftedArrow(x => {
     /* @arrow :: 'a ~> 'a */
     return x;
 }).named("id");
@@ -294,12 +294,12 @@ Arrow.throwFalse = () => new LiftedArrow(x => {
 }).named("throwFalse");
 
 // Repetition helpers
-Arrow.reptop     = () => new LiftedArrow(x => {
+Arrow.reptop = () => new LiftedArrow(x => {
     /* @arrow :: _ ~> <loop: _, halt: _> */
     return Arrow.loop(null);
 });
 
-Arrow.repcond    = () => new LiftedArrow((x, f) =>{
+Arrow.repcond = () => new LiftedArrow((x, f) =>{
     /* @arrow :: ('a, Bool) ~> <loop: 'a, halt: _> */
     return f ? Arrow.loop(x) : Arrow.halt(null);
 });
