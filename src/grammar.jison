@@ -37,7 +37,7 @@ top
 
 type
     : IDENT                   { $$ = new NamedType($1);                           }
-    | IDENT sum_tail          { $$ = new SumType([new NamedType($1)].concat($2)); }
+    | IDENT sum_tail          { $$ = new SumType([$1].concat($2));                }
 
     | '_'                     { $$ = new TopType();                               }
     | "'" IDENT               { $$ = new ParamType($2);                           }
@@ -49,8 +49,8 @@ type
     ;
 
 sum_tail
-    : '+' IDENT           { $$ = [new NamedType($2)];            }
-    | '+' IDENT sum_tail  { $$ = [new NamedType($2)].concat($3); }
+    : '+' IDENT           { $$ = [$2];            }
+    | '+' IDENT sum_tail  { $$ = [$2].concat($3); }
     ;
 
 types
