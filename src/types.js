@@ -114,19 +114,19 @@ function checkNamedType(name, value) {
 class NamedType extends Type {
     constructor(name) {
         super();
-        this.name = name;
+        this.names = [name];
     }
 
     equals(that) {
-        return that instanceof NamedType && this.name === that.name;
+        return that instanceof NamedType && this.names[0] === that.names[0];
     }
 
     toString() {
-        return this.name;
+        return this.names[0];
     }
 
     check(value) {
-        if (!checkNamedType(this.name, value)) {
+        if (!checkNamedType(this.names[0], value)) {
             super.check(value);
         }
     }

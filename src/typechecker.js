@@ -37,12 +37,8 @@ class Constraint {
         let a = this.lower;
         let b = this.upper;
 
-        if (a instanceof NamedType || a instanceof SumType) {
-            if (b instanceof NamedType || b instanceof SumType) {
-                let na = (a instanceof NamedType) ? [a] : a.names;
-                let nb = (b instanceof NamedType) ? [b] : b.names;
-                return na.every(t1 => nb.some(t2 => t1.equals(t2)));
-            }
+        if (hasNames(a) && hasNames(b)) {
+            return a.names.every(t1 => b.names.some(t2 => t1 == t2));
         }
 
         if (a instanceof ArrayType       && b instanceof ArrayType)       return true;
@@ -408,15 +404,10 @@ function lub(a, b) {
         return a;
     }
 
-    if (a instanceof NamedType || a instanceof SumType) {
-        if (b instanceof NamedType || b instanceof SumType) {
-            let na = (a instanceof NamedType) ? [a] : a.names;
-            let nb = (b instanceof NamedType) ? [b] : b.names;
-            let nu = na.concat(nb.filter(n => na.indexOf(n) < 0));
-
-            if (nu.length == 1) return new NamedType(nu[0]);
-            if (nu.length >= 2) return new SumType(nu);
-        }
+    if (hasNames(a) && hasNames(b)) {
+        let na = a.names;
+        let nb = b.names;
+        return createNamedType(na.concat(nb.filter(n => na.indexOf(n) < 0)));
     }
 
     if (a instanceof TaggedUnionType && b instanceof TaggedUnionType) {
@@ -458,14 +449,10 @@ function glb(a, b) {
     if (a instanceof TopType) return b;
     if (b instanceof TopType) return a;
 
-    if (a instanceof NamedType || a instanceof SumType) {
-        if (b instanceof NamedType || b instanceof SumType) {
-            let na = (a instanceof NamedType) ? [a] : a.names;
-            let nb = (b instanceof NamedType) ? [b] : b.names;
-            let ni = na.filter(t1 => nb.some(t2 => t1.equals(t2)));
-
-            if (ni.length == 1) return new NamedType(ni[0]);
-            if (ni.length >= 2) return new SumType(ni);
+    if (hasNames(a) && hasNames(b)) {
+        let names = a.names.filter(t1 => b.names.some(t2 => t1 == t2));
+        if (names.length > 0) {
+            return createNamedType(names);
         }
     }
 
@@ -496,4 +483,16 @@ function glb(a, b) {
     }
 
     throw new Error(`No greatest lower bound of "${a.toString()}" and "${b.toString()}".`);
+}
+
+function hasNames(t) {
+    return (a instanceof NamedType || a instanceof SumType);
+}
+
+function createNamedType(names) {
+    if (names.length == 1) {
+        return new NamedType(names[0]);
+    }
+
+    return new SumType(names);
 }
