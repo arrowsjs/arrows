@@ -486,7 +486,7 @@ function glb(a, b) {
 }
 
 function hasNames(t) {
-    return (a instanceof NamedType || a instanceof SumType);
+    return (t instanceof NamedType || t instanceof SumType);
 }
 
 function createNamedType(names) {
