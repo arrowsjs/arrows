@@ -89,7 +89,16 @@ Boolean.prototype.lift = function() {
     let value = this.valueOf();
 
     return new LiftedArrow(function() {
-        /* @arrow : _ ~> Bool */
+        /* @arrow :: _ ~> Bool */
+        return value;
+    });
+};
+
+String.prototype.lift = function() {
+    let value = this.valueOf();
+
+    return new LiftedArrow(function() {
+        /* @arrow :: _ ~> String */
         return value;
     });
 };
