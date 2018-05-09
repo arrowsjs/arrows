@@ -113,8 +113,8 @@ class Arrow {
     }
 
     run() {
-        if (!(this.type.arg instanceof TopType)) {
-            throw new Error("Cannot run an arrow that takes arguments");
+        if (!((this.type.arg instanceof TopType) || (this.type.arg instanceof ParamType))) {
+            throw new Error("Cannot run an arrow that takes arguments (expected " + this.type.arg + ")");
         }
 
         let p = new Progress(true);
