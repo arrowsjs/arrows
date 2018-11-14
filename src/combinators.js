@@ -134,7 +134,7 @@ class SeqCombinator extends Combinator {
     call(x, p, k, h) {
         let i = 0;
         let arrows = this.arrows;
-        const rec = (y) = {
+        const rec = (y) => {
             if (i >= arrows.length) {
                 k(y);
             } else {
