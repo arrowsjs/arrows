@@ -428,7 +428,11 @@ class ProxyArrow extends Arrow {
     }
 
     isAsync() {
-        return this.ensureFrozen(a => a.isAsync());
+        if (this._isAsync === undefined) {
+          this._isAsync = false;
+          this._isAsync = this.ensureFrozen(a => a.isAsync());
+        }
+        return this._isAsync;
     }
 
     ensureFrozen(f) {
