@@ -132,15 +132,17 @@ class SeqCombinator extends Combinator {
     }
 
     call(x, p, k, h) {
-        const rec = (y, [head, ...tail]) => {
-            if (head === undefined) {
+        let i = 0;
+        let arrows = this.arrows;
+        const rec = (y) = {
+            if (i >= arrows.length) {
                 k(y);
             } else {
-                head.call(y, p, z => rec(z, tail), h);
+                arrows[i++].call(y, p, rec, h);
             }
         };
 
-        rec(x, this.arrows);
+        rec(x);
     }
 }
 
